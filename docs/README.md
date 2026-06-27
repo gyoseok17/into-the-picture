@@ -1,4 +1,4 @@
-# TourSnap 설계 문서
+# Into the Picture 설계 문서
 
 > 사진으로 여행지를 발견하는 관광 추천 서비스 — 상세 설계
 

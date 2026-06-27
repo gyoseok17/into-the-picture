@@ -6,7 +6,7 @@
 ## 도메인 분해 원칙
 
 기능을 **응집도 높은 도메인** 단위로 나눈다. 각 도메인은:
-- 백엔드: 독립 패키지 (`com.toursnap.{domain}`) — controller / service / repository / external-adapter
+- 백엔드: 독립 패키지 (`com.intothepicture.{domain}`) — controller / service / repository / external-adapter
 - 프론트: 독립 기능 폴더 (`src/features/{domain}`)
 - 외부 API 의존이 있으면 어댑터 계층으로 격리
 

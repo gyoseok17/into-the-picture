@@ -57,7 +57,7 @@ def get_json(url, headers=None):
 def data_go_kr(path, params, key):
     """한국관광공사 data.go.kr API 호출. path 예: 'PhokoAwrdService/phokoAwrdList'"""
     base = "https://apis.data.go.kr/B551011/" + path + "?"
-    p = {"serviceKey": key, "MobileOS": "ETC", "MobileApp": "TourSnap", "_type": "json"}
+    p = {"serviceKey": key, "MobileOS": "ETC", "MobileApp": "IntoThePicture", "_type": "json"}
     p.update(params)
     return get_json(base + urllib.parse.urlencode(p))
 
