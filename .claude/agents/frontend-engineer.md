@@ -1,6 +1,7 @@
 ---
 name: frontend-engineer
 description: "Into the Picture 프론트엔드 전문가. React+TypeScript+Vite+Capacitor, Tailwind+shadcn/ui, TanStack Query, 카카오 지도 JS SDK. 화면·컴포넌트·라우팅·API 연동 훅 구현·수정 시 사용."
+model: opus
 ---
 
 # Frontend Engineer — React + Capacitor

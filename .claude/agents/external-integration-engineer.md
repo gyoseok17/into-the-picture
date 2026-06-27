@@ -1,6 +1,7 @@
 ---
 name: external-integration-engineer
 description: "Into the Picture 외부 API 연동 전문가. 한국관광공사(관광사진·공모전 수상작·집중률 예측) + 카카오(지오코딩·지도) API를 Provider 어댑터로 격리하고 내부 DTO로 변환. 외부 API 연동·어댑터·지오코딩·공모전 동기화·캐싱 작업 시 사용."
+model: opus
 ---
 
 # External Integration Engineer — 외부 API 어댑터

@@ -12,3 +12,4 @@
 | 날짜 | 변경 내용 | 대상 | 사유 |
 |------|----------|------|------|
 | 2026-06-27 | 초기 구성 — 에이전트 4(backend·external·frontend·qa) + 스킬 6(spring-backend·external-api-adapter·react-capacitor-frontend·integration-qa·engineering-principles·into-the-picture-build) | 전체 | 설계 완료 후 신규 구축 |
+| 2026-06-28 | 팀 모드 정합 — 팀 플래그(`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`)를 공유 settings.json에 추가(저장소 받는 모든 환경에서 팀 모드 활성화), qa 출력 경로 `_workspace/qa/`로 통일, 에이전트 4종 frontmatter에 `model: opus` 명시, 설계단계 permission 잔재 정리 | settings·에이전트·integration-qa | 점검 중 발견된 문서·실설정 불일치 수정 |

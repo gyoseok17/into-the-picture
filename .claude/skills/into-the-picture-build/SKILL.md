@@ -7,8 +7,10 @@ description: "Into the Picture 앱 구현을 에이전트 팀(backend-engineer·
 
 Into the Picture 에이전트 팀을 조율해 설계(`docs/`)를 실제 코드(`backend/` + `frontend/`)로 구현하는 통합 스킬.
 
-## 실행 모드: 에이전트 팀
+## 실행 모드: 에이전트 팀 (in-process)
 풀스택 빌드는 backend↔frontend↔external 간 **경계면 합의·실시간 검증**이 품질을 좌우하므로 팀 모드를 쓴다.
+
+활성화: `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` (공유되는 `.claude/settings.json`에 설정됨 — 저장소를 받는 모든 환경에서 팀 모드가 켜지도록. gitignore되는 settings.local.json에 두면 안 됨). `TeamCreate`/`TeamDelete`는 v2.1.178부터 폐기 — 리드가 **`Agent` 도구로 팀원을 스폰**하면 플래그에 의해 진짜 팀원(서로 `SendMessage` + 공유 Task 목록)이 된다. 기본 **in-process 모드는 모든 터미널에서 동작**(Windows 포함). tmux/iTerm2는 split-pane(나란히 보기)에만 필요하며 Windows Terminal·VS Code 터미널은 미지원 — 빌드 동작엔 무관.
 
 ## 에이전트 구성
 
@@ -17,9 +19,9 @@ Into the Picture 에이전트 팀을 조율해 설계(`docs/`)를 실제 코드(
 | backend-engineer | 커스텀(opus) | 엔티티·서비스·컨트롤러·인증·Flyway | spring-backend | `backend/` |
 | external-integration-engineer | 커스텀(opus) | 외부 API 어댑터·DTO·sync·지오코딩 | external-api-adapter | `backend/`(external) |
 | frontend-engineer | 커스텀(opus) | 화면·훅·지도·라우팅 | react-capacitor-frontend | `frontend/` |
-| qa-integration | general-purpose(opus) | 경계면 교차검증(incremental) | integration-qa | `_workspace/qa-*` |
+| qa-integration | 커스텀(opus, 전체도구) | 경계면 교차검증(incremental) | integration-qa | `_workspace/qa/` |
 
-> 모든 Agent/TeamCreate 호출에 `model: "opus"`를 명시한다.
+> 모든 `Agent` 도구 호출(팀원 스폰)에 `model: "opus"`를 명시한다.
 > 모든 팀원은 영역 스킬과 함께 공통 **`engineering-principles`**(확장성·수정 규율·SRP/DIP·가독성)를 따른다.
 
 ## 워크플로우
@@ -37,8 +39,8 @@ Into the Picture 에이전트 팀을 조율해 설계(`docs/`)를 실제 코드(
 3. 빌드 범위 결정 — 전체 또는 사용자가 지정한 도메인(인증/검색/공모전/집중률/지도/비교).
 
 ### Phase 2: 팀 구성
-1. `TeamCreate(team_name:"into-the-picture", members:[4명, 각 model:"opus", 위 에이전트 정의 사용])`.
-2. `TaskCreate`로 작업 등록(의존성 `depends_on` 명시). 팀원당 4~6개.
+1. 리드(메인 세션)가 **`Agent` 도구로 팀원 4명을 스폰**한다 — 각 `subagent_type`=에이전트 이름(backend-engineer / external-integration-engineer / frontend-engineer / qa-integration), `model:"opus"`, `run_in_background:true`. 플래그가 켜져 있어 이들은 서로 `SendMessage`로 통신하는 **팀원**이 된다. (별도 TeamCreate 단계 없음)
+2. `TaskCreate`로 작업 등록(의존성 `depends_on` 명시). 팀원당 4~6개. 팀원은 공유 목록에서 self-claim 하거나 리드가 배정.
 
 ### Phase 3: 빌드 (파이프라인 + 팬아웃)
 **3-1. 계약 합의 (먼저):**
@@ -60,7 +62,7 @@ Into the Picture 에이전트 팀을 조율해 설계(`docs/`)를 실제 코드(
 3. 남은 경계면 이슈 수정. 빌드/실행 가능 상태 확인.
 
 ### Phase 5: 정리
-1. 팀원 종료(SendMessage) 후 `TeamDelete`.
+1. 각 팀원에 종료 요청(SendMessage shutdown). 팀 디렉토리는 **세션 종료 시 자동 정리**(별도 TeamDelete 없음). `_workspace/` 산출물은 디스크에 남는다.
 2. `_workspace/` 보존(감사 추적).
 3. 사용자에게 결과 요약 + 다음 단계(실행/테스트) 안내. **피드백 요청**(개선점·팀 구성 변경 희망?).
 

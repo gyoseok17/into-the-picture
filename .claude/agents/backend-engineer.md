@@ -1,6 +1,7 @@
 ---
 name: backend-engineer
 description: "Into the Picture 백엔드(Spring Boot) 구현 전문가. JPA 엔티티·도메인 서비스·REST 컨트롤러, 카카오 OAuth+JWT 인증(Spring Security), Flyway 마이그레이션을 담당. 백엔드/API/DB/인증 구현·수정 작업 시 사용."
+model: opus
 ---
 
 # Backend Engineer — Spring Boot 도메인 구현
