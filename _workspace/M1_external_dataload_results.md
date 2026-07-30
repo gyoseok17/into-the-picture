@@ -31,3 +31,10 @@ DATA_GO_KR_KEY=... KAKAO_REST_KEY=... ./gradlew bootRun --args='--external.datal
 
 ## 정리(cleanup)
 이 PC 네이티브 MySQL에 `into_the_picture` DB가 남아 있음(프로젝트 실데이터). 불필요 시 `DROP DATABASE into_the_picture;`. 타 프로젝트 DB(orderapp/shop/auth) 무손상.
+
+## DB 전환: MySQL → Supabase(PostgreSQL) — 2026-07-30
+> 위 적재(6/28)는 로컬 MySQL 기준. 이후 DB를 Supabase(PostgreSQL 17.6)로 전환하고 재적재.
+- 코드 전환: `build.gradle`(드라이버 postgresql·flyway-database-postgresql), `application-local.yml`(jdbc:postgresql·org.postgresql.Driver), `V1__init.sql`(IDENTITY·TIMESTAMP·DOUBLE PRECISION, ENGINE/CHARSET 제거).
+- 접속: **Session pooler(IPv4)** 사용. Direct 호스트(`db.<ref>.supabase.co`)는 IPv6 전용이라 IPv4 환경에서 불가 → `aws-0-<region>.pooler.supabase.com:5432`, user `postgres.<ref>`. `.env`의 DB_HOST/DB_USERNAME/DB_PASSWORD로 주입(커밋 금지).
+- 재적재 실측: sync 95/95, 지오코딩 95/95(100%), 집중률 매칭 **59/95(62%)** — 6/28의 61건과 2건 차이는 외부 집중률 API 시점 변동(정상).
+- 재현: `.env`에 Supabase pooler 접속정보 세팅 후 `./gradlew bootRun --args='--external.dataload.enabled=true'`.
