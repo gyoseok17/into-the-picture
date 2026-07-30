@@ -28,6 +28,7 @@
 - 프로젝트 진행/결정 → 메모리(into-the-picture-project). 하네스 변경 → CLAUDE.md 변경이력.
 
 ## 현재 상태
-- Phase 0(초기 빌드 확인)·Phase 1(워크스페이스 생성) 완료.
-- 작업목록 등록: #1 백엔드 스캐폴딩/공통, #2 데이터모델/Flyway, #3 contest 도메인+계약, #4 contest 외부연동. (프론트/QA 태스크는 M1 착수 시 추가)
-- **M1 착수 대기** — 에이전트 미실행(코드 생성 시작 전).
+- Phase 0(초기 빌드 확인: `backend/`·`frontend/` 없음 → 초기 빌드)·Phase 1(설계 로드 00~09, 워크스페이스 준비) 완료.
+- **M1 진행 중** — 2026-06-28 착수. 팀 4명(backend·external·frontend·qa) 스폰.
+- 작업목록은 세션별로 생성됨(세션 넘으면 미보존) → M1 착수 시 재등록.
+- 계약 시드 게시: `_workspace/contracts/M1_lead_contracts.md`, `_workspace/api-shapes/M1_lead_contest-shapes.md` (backend↔external·frontend이 합의·갱신).

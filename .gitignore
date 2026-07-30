@@ -19,6 +19,7 @@ dist/
 target/
 build/
 .gradle/
+.tmp-gradle/
 
 # --- 업로드/로컬 스토리지 (추후) ---
 uploads/
