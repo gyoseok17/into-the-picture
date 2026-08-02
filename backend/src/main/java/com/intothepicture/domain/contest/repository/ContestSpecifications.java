@@ -21,6 +21,12 @@ public final class ContestSpecifications {
             .and(keywordContains(cond.keyword()));
     }
 
+    /** lat·lng 가 둘 다 non-null 인 작품만(지도에 찍을 수 있는 것). 목록 필터에 &and 로 덧붙여 재사용. */
+    public static Specification<ContestWork> hasCoordinates() {
+        return (root, query, cb) ->
+            cb.and(cb.isNotNull(root.get("lat")), cb.isNotNull(root.get("lng")));
+    }
+
     private static Specification<ContestWork> equals(String field, String value) {
         return (root, query, cb) ->
             StringUtils.hasText(value) ? cb.equal(root.get(field), value) : cb.conjunction();

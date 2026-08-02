@@ -28,6 +28,19 @@ export interface ContestDetail extends ContestSummary {
   crowdAvailable: boolean // true면 프론트가 /crowd 호출
 }
 
+// GET /contests/map 항목 — 지도 뷰 다중 마커용.
+// 페이지네이션 없이 필터 걸린 작품 전체 배열. lat/lng 둘 다 non-null 보장(좌표 없는 건 응답 제외).
+// 출처: _workspace/contracts/M1.1_lead_contest-mapview.md.
+export interface ContestMapPin {
+  id: number
+  title: string
+  thumbUrl: string // https 치환됨 (미리보기 카드 썸네일)
+  lat: number // non-null 보장
+  lng: number
+  awardGrade: string // 미리보기 뱃지용
+  sido: string | null // 미리보기 보조 표기
+}
+
 // GET /contests/filters — UI 구성용
 export interface FilterOptions {
   seasons: string[]

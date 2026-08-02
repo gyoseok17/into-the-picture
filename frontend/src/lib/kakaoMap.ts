@@ -1,38 +1,74 @@
 import { KAKAO_JS_KEY } from './env'
 
-// 카카오 지도 JS SDK 로더. autoload=false로 받아 kakao.maps.load 콜백 후 resolve.
-// 한 번만 로드(중복 script 방지)되도록 promise를 캐시한다.
+// The contest map uses MarkerClusterer, so the SDK must be loaded with its
+// optional `clusterer` library on the first script request.
+const KAKAO_MAPS_SDK_URL = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_JS_KEY}&autoload=false&libraries=clusterer`
+
+// Only one script load is in flight at a time. Reset the cached promise after
+// an error so a later retry can create a fresh request.
 let loadPromise: Promise<void> | null = null
 
 export function loadKakaoMaps(): Promise<void> {
   if (typeof window === 'undefined') {
-    return Promise.reject(new Error('window 없음'))
+    return Promise.reject(new Error('window is unavailable'))
   }
   if (!KAKAO_JS_KEY) {
-    return Promise.reject(new Error('VITE_KAKAO_JS_KEY 미설정'))
+    return Promise.reject(new Error('VITE_KAKAO_JS_KEY is not configured'))
   }
-  if (window.kakao?.maps) {
-    return Promise.resolve()
-  }
+
   if (loadPromise) {
     return loadPromise
   }
 
   loadPromise = new Promise<void>((resolve, reject) => {
+    const completeAfterMapsLoad = () => {
+      const maps = window.kakao?.maps
+      if (!maps) {
+        loadPromise = null
+        reject(new Error('Failed to load Kakao Maps SDK'))
+        return
+      }
+
+      try {
+        maps.load(() => {
+          if (!window.kakao?.maps?.MarkerClusterer) {
+            loadPromise = null
+            reject(
+              new Error(
+                'Kakao Maps was loaded without the clusterer library',
+              ),
+            )
+            return
+          }
+          resolve()
+        })
+      } catch (error) {
+        loadPromise = null
+        reject(error)
+      }
+    }
+
+    // autoload=false SDKs expose maps before optional libraries are initialized.
+    // Always wait for maps.load() before checking MarkerClusterer.
+    if (window.kakao?.maps) {
+      completeAfterMapsLoad()
+      return
+    }
+
     const script = document.createElement('script')
-    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_JS_KEY}&autoload=false`
+    script.src = KAKAO_MAPS_SDK_URL
     script.async = true
     script.onload = () => {
       if (!window.kakao?.maps) {
         loadPromise = null
-        reject(new Error('카카오 지도 로드 실패'))
+        reject(new Error('Failed to load Kakao Maps SDK'))
         return
       }
-      window.kakao.maps.load(() => resolve())
+      completeAfterMapsLoad()
     }
     script.onerror = () => {
       loadPromise = null
-      reject(new Error('카카오 지도 SDK를 불러오지 못했어요'))
+      reject(new Error('Failed to load Kakao Maps SDK'))
     }
     document.head.appendChild(script)
   })
@@ -40,7 +76,6 @@ export function loadKakaoMaps(): Promise<void> {
   return loadPromise
 }
 
-// 길안내: 카카오맵 'to' 링크(웹/앱 공통). 좌표 + 도착지명으로 경로 안내 화면을 연다.
 export function buildKakaoDirectionsUrl(name: string, lat: number, lng: number): string {
   return `https://map.kakao.com/link/to/${encodeURIComponent(name)},${lat},${lng}`
 }

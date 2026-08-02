@@ -1,6 +1,7 @@
 package com.intothepicture.domain.contest.service;
 
 import com.intothepicture.domain.contest.dto.ContestDetailDto;
+import com.intothepicture.domain.contest.dto.ContestMapPinDto;
 import com.intothepicture.domain.contest.dto.ContestMapper;
 import com.intothepicture.domain.contest.dto.ContestSearchCondition;
 import com.intothepicture.domain.contest.dto.ContestSummaryDto;
@@ -53,6 +54,19 @@ public class ContestService {
             .findAll(ContestSpecifications.from(condition), pageable)
             .map(ContestMapper::toSummary);
         return PageResponse.from(page);
+    }
+
+    /**
+     * 지도 뷰용: 목록과 동일한 필터 + 좌표 non-null 조건. 페이지네이션 없이 전체를 배열로.
+     * 필터 규칙은 목록과 같은 {@link ContestSpecifications#from} 재사용(중복 구현 금지).
+     */
+    @Transactional(readOnly = true)
+    public List<ContestMapPinDto> findMapPins(ContestSearchCondition condition) {
+        return contestRepository
+            .findAll(ContestSpecifications.from(condition).and(ContestSpecifications.hasCoordinates()))
+            .stream()
+            .map(ContestMapper::toMapPin)
+            .toList();
     }
 
     @Transactional(readOnly = true)

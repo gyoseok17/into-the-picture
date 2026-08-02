@@ -1,6 +1,5 @@
-// 카카오 지도 JS SDK 최소 타입 선언.
-// 공식 타입 패키지가 없어 우리가 실제 사용하는 표면(마커 표시)만 좁게 선언한다.
-// 우리 API 경계(내부 DTO)를 우회하는 any 캐스팅과는 무관 — 외부 글로벌 SDK 격리용.
+// Narrow declarations for the Kakao Maps JS SDK surface used by this app.
+// Kakao does not publish a first-party TypeScript package.
 export {}
 
 declare global {
@@ -11,21 +10,83 @@ declare global {
 
   interface KakaoMap {
     setCenter(latlng: KakaoLatLng): void
+    setBounds(bounds: KakaoLatLngBounds): void
     relayout(): void
   }
 
   interface KakaoMarker {
     setMap(map: KakaoMap | null): void
+    getPosition(): KakaoLatLng
+  }
+
+  interface KakaoLatLngBounds {
+    extend(latlng: KakaoLatLng): void
+  }
+
+  interface KakaoMarkerCluster {
+    getMarkers(): KakaoMarker[]
+    getCenter(): KakaoLatLng
+    getBounds(): KakaoLatLngBounds
+    getSize(): number
+    getText(): string
+  }
+
+  interface KakaoMarkerClusterer {
+    addMarker(marker: KakaoMarker, nodraw?: boolean): void
+    addMarkers(markers: KakaoMarker[], nodraw?: boolean): void
+    clear(): void
+    removeMarker(marker: KakaoMarker, nodraw?: boolean): void
+    removeMarkers(markers: KakaoMarker[], nodraw?: boolean): void
+    redraw(): void
+    setMap(map: KakaoMap | null): void
+  }
+
+  interface KakaoMarkerClustererOptions {
+    map?: KakaoMap
+    averageCenter?: boolean
+    minLevel?: number
+    minClusterSize?: number
+    disableClickZoom?: boolean
+    gridSize?: number
+    calculator?: number[] | ((size: number) => number)
+    texts?: string[] | ((size: number) => string)
+    styles?: Array<Record<string, string | number>>
+  }
+
+  interface KakaoMapEvent {
+    addListener(
+      target: KakaoMarkerClusterer,
+      type: 'clusterclick',
+      handler: (cluster: KakaoMarkerCluster) => void,
+    ): void
+    addListener(
+      target: KakaoMap | KakaoMarker | KakaoMarkerClusterer,
+      type: string,
+      handler: (...args: unknown[]) => void,
+    ): void
+    removeListener(
+      target: KakaoMarkerClusterer,
+      type: 'clusterclick',
+      handler: (cluster: KakaoMarkerCluster) => void,
+    ): void
+    removeListener(
+      target: KakaoMap | KakaoMarker | KakaoMarkerClusterer,
+      type: string,
+      handler: (...args: unknown[]) => void,
+    ): void
   }
 
   interface KakaoMapsNamespace {
     load(callback: () => void): void
+    event: KakaoMapEvent
     LatLng: new (lat: number, lng: number) => KakaoLatLng
+    LatLngBounds: new () => KakaoLatLngBounds
     Map: new (
       container: HTMLElement,
       options: { center: KakaoLatLng; level: number },
     ) => KakaoMap
     Marker: new (options: { position: KakaoLatLng; map?: KakaoMap }) => KakaoMarker
+    MarkerClusterer: new (options: KakaoMarkerClustererOptions) => KakaoMarkerClusterer
   }
 
   interface Window {

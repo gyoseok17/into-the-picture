@@ -2,6 +2,7 @@ import { apiClient } from '@/lib/apiClient'
 import type { Page } from '@/lib/api-types'
 import type {
   ContestDetail,
+  ContestMapPin,
   ContestQuery,
   ContestSummary,
   CrowdForecast,
@@ -25,6 +26,18 @@ export async function fetchContests(
 ): Promise<Page<ContestSummary>> {
   const { data } = await apiClient.get<Page<ContestSummary>>('/contests', {
     params: { ...cleanParams(query), page, size: CONTEST_PAGE_SIZE },
+  })
+  return data
+}
+
+// 지도 뷰: 필터 걸린 작품 전체(페이지네이션·sort 없음). 좌표 non-null 인 것만 응답에 포함.
+// 필터 파라미터는 목록과 동일(season/grade/division/sido/keyword) — sort는 지도에 무의미해 전달 안 함.
+export async function fetchContestMap(
+  query: ContestQuery,
+): Promise<ContestMapPin[]> {
+  const { sort: _sort, ...filters } = query
+  const { data } = await apiClient.get<ContestMapPin[]>('/contests/map', {
+    params: cleanParams(filters),
   })
   return data
 }

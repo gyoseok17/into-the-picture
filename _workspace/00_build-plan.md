@@ -28,7 +28,7 @@
 - 프로젝트 진행/결정 → 메모리(into-the-picture-project). 하네스 변경 → CLAUDE.md 변경이력.
 
 ## 현재 상태
-- Phase 0(초기 빌드 확인: `backend/`·`frontend/` 없음 → 초기 빌드)·Phase 1(설계 로드 00~09, 워크스페이스 준비) 완료.
-- **M1 진행 중** — 2026-06-28 착수. 팀 4명(backend·external·frontend·qa) 스폰.
-- 작업목록은 세션별로 생성됨(세션 넘으면 미보존) → M1 착수 시 재등록.
-- 계약 시드 게시: `_workspace/contracts/M1_lead_contracts.md`, `_workspace/api-shapes/M1_lead_contest-shapes.md` (backend↔external·frontend이 합의·갱신).
+- Phase 0·1 및 **M1 기반 + 공모전 수직 슬라이스** 완료(`be434dd`). 공모전 95건 적재·좌표 95/95·집중률 매칭 59/95는 `_workspace/M1_external_dataload_results.md`에 기록.
+- **M1.1 공모전 지도 뷰 완료** — 목록/지도 토글, `/contests/map`, 필터 공유, 카카오 지도 클러스터·반응형 선택 패널·경계 QA를 포함한다.
+- M1.1 계약·실제 API shape·프런트 매핑·QA는 `_workspace/contracts/`, `api-shapes/`, `frontend/`, `qa/`의 `M1.1_*` 산출물에 보존한다.
+- 다음 구현 마일스톤은 사용자 확인 후 M2(인증)로 진행한다.

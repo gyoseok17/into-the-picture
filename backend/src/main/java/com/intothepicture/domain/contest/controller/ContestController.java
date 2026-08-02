@@ -1,6 +1,7 @@
 package com.intothepicture.domain.contest.controller;
 
 import com.intothepicture.domain.contest.dto.ContestDetailDto;
+import com.intothepicture.domain.contest.dto.ContestMapPinDto;
 import com.intothepicture.domain.contest.dto.ContestSearchCondition;
 import com.intothepicture.domain.contest.dto.ContestSummaryDto;
 import com.intothepicture.domain.contest.dto.CrowdForecastDto;
@@ -48,6 +49,19 @@ public class ContestController {
     ) {
         ContestSearchCondition condition = new ContestSearchCondition(season, grade, division, sido, keyword);
         return contestService.getContests(condition, toPageable(page, size, sort));
+    }
+
+    /** 지도 뷰: 목록과 동일한 필터, 좌표 있는 작품 전체를 배열로(페이지네이션·sort 없음). */
+    @GetMapping("/map")
+    public List<ContestMapPinDto> getContestMapPins(
+        @RequestParam(required = false) String season,
+        @RequestParam(required = false) String grade,
+        @RequestParam(required = false) String division,
+        @RequestParam(required = false) String sido,
+        @RequestParam(required = false) String keyword
+    ) {
+        ContestSearchCondition condition = new ContestSearchCondition(season, grade, division, sido, keyword);
+        return contestService.findMapPins(condition);
     }
 
     @GetMapping("/filters")

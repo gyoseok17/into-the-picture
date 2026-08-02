@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.intothepicture.domain.contest.dto.ContestDetailDto;
+import com.intothepicture.domain.contest.dto.ContestMapPinDto;
 import com.intothepicture.domain.contest.dto.ContestSummaryDto;
 import com.intothepicture.domain.contest.dto.CrowdForecastDto;
 import com.intothepicture.domain.contest.service.ContestService;
@@ -73,6 +74,33 @@ class ContestControllerTest {
             .andExpect(jsonPath("$.content[0].season", nullValue()))
             .andExpect(jsonPath("$.content[0].sido", nullValue()))
             .andExpect(jsonPath("$.content[0].sigungu", nullValue()));
+    }
+
+    @Test
+    void getContestMapPins_returnsArrayShape() throws Exception {
+        ContestMapPinDto pin = new ContestMapPinDto(
+            12L, "가야산 설경", "https://x/thumb.jpg", 35.8043935, 128.1083354, "입선", "경상남도");
+        given(contestService.findMapPins(any())).willReturn(List.of(pin));
+
+        mockMvc.perform(get("/api/v1/contests/map").param("season", "겨울"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$").isArray())
+            .andExpect(jsonPath("$[0].id").value(12))
+            .andExpect(jsonPath("$[0].thumbUrl").value("https://x/thumb.jpg"))
+            .andExpect(jsonPath("$[0].lat").value(35.8043935))
+            .andExpect(jsonPath("$[0].lng").value(128.1083354))
+            .andExpect(jsonPath("$[0].awardGrade").value("입선"))
+            .andExpect(jsonPath("$[0].sido").value("경상남도"));
+    }
+
+    @Test
+    void getContestMapPins_returnsEmptyArray_whenNoData() throws Exception {
+        given(contestService.findMapPins(any())).willReturn(List.of());
+
+        mockMvc.perform(get("/api/v1/contests/map"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$").isArray())
+            .andExpect(jsonPath("$.length()").value(0));
     }
 
     @Test

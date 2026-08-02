@@ -55,6 +55,19 @@ public final class ContestMapper {
         );
     }
 
+    /** 지도 핀 변환. 좌표(lat/lng)가 둘 다 non-null 인 작품에만 호출된다(getLat/getLng 언박싱 안전). */
+    public static ContestMapPinDto toMapPin(ContestWork work) {
+        return new ContestMapPinDto(
+            work.getId(),
+            work.getTitle(),
+            ImageUrls.toHttps(work.getThumbImageUrl()),
+            work.getLat(),
+            work.getLng(),
+            work.getAwardGrade(),
+            work.getSido()
+        );
+    }
+
     public static CrowdForecastDto toCrowdForecast(CrowdForecast forecast, List<LocalDate> recommendedDates) {
         List<CrowdForecastDto.DailyRateDto> daily = forecast.daily().stream()
             .map(rate -> new CrowdForecastDto.DailyRateDto(rate.date().format(ISO_DATE), rate.rate()))
