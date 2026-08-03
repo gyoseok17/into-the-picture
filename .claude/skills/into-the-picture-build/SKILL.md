@@ -5,6 +5,15 @@ description: "Into the Picture 앱 구현을 에이전트 팀(backend-engineer·
 
 # Into the Picture Build Orchestrator
 
+## Development progress-log protocol
+
+The lead owns `docs/development-log/`. At the start of every implementation task, the lead selects the milestone file (or creates `M<version>-<topic>.md`) and marks it in progress. The lead reads the index before planning and updates it when a new milestone file is created.
+
+- Every agent reports its implemented scope, design decisions and reasons, verification result, and notable constraints to the lead when it completes a task.
+- Agents write detailed contracts, API shapes, and QA evidence in `_workspace/` as usual. They do not edit the shared milestone log unless the lead explicitly assigns that task.
+- Before a commit, the lead consolidates agent reports into the milestone file. After the commit, the lead records the commit hash and date and changes its state to complete.
+- Logs must not contain secret values, tokens, or personal data.
+
 Into the Picture 에이전트 팀을 조율해 설계(`docs/`)를 실제 코드(`backend/` + `frontend/`)로 구현하는 통합 스킬.
 
 ## 실행 모드: 에이전트 팀 (in-process)

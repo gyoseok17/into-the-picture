@@ -12,16 +12,14 @@
         ┌──────────────┐                 ┌──────────────────┐
         │     User     │                 │   ContestWork    │
         │  (회원)       │                 │ (공모전 수상작 캐시)│
-        └──────┬───────┘                 └──────────────────┘
-               │ 1                        외부 API에서 배치 동기화
-       ┌───────┼────────────┐            Favorite(CONTEST)가 참조
-     N │                  N │
-┌──────▼──────┐     ┌───────▼────────┐
-│  UserPhoto  │     │   Favorite     │
-│ (업로드 사진) │     │  (즐겨찾기)      │
-└─────────────┘     └────────────────┘
-                    targetType+source+externalId 로
-                    수상작(로컬)·관광사진(외부)·관광지를 참조
+        └──┬────┬────┬─┘                 └──────────────────┘
+         1 │    │ N  │ N                  외부 API에서 배치 동기화
+┌──────────▼┐ ┌─▼──────────┐ ┌───────────▼───────┐
+│RefreshToken│ │ UserPhoto  │ │    Favorite       │
+│(토큰 해시) │ │(업로드 사진)│ │   (즐겨찾기)       │
+└───────────┘ └────────────┘ └───────────────────┘
+                               targetType+source+externalId 로
+                               수상작(로컬)·관광사진(외부)·관광지를 참조
 ```
 
 관광사진·집중률은 엔티티가 아니라 **DTO**로만 존재한다 (어댑터가 반환). → 06 참고.
@@ -52,6 +50,19 @@ BaseTimeEntity
 
 - 카카오 로그인만 사용 → 비밀번호 컬럼 없음.
 - `role` enum → 관리자 기능 확장 대비.
+
+### RefreshToken — 로그인 세션 갱신 토큰
+
+| 필드 | 타입 | 제약 | 설명 |
+|------|------|------|------|
+| id | BIGINT | PK, auto | 내부 식별자 |
+| user | FK → User | UNIQUE, NOT NULL | 사용자당 활성 세션 1개 |
+| tokenHash | VARCHAR(64) | NOT NULL | refresh JWT의 SHA-256 해시(원문 저장 금지) |
+| expiresAt | TIMESTAMP | NOT NULL | refresh 만료 시각 |
+| (createdAt, updatedAt) | | | BaseTimeEntity |
+
+- `POST /auth/refresh`는 유효한 JWT와 `tokenHash`가 모두 일치할 때만 새 access·refresh를 발급하고, 기존 행의 해시·만료를 교체한다(회전).
+- 로그아웃은 이 행을 삭제해 현재 refresh를 즉시 무효화한다.
 
 ### UserPhoto — 업로드 사진 (포토 비교용)
 
@@ -130,5 +141,6 @@ BaseTimeEntity
 ## Flyway 마이그레이션 방침
 
 - `V1__init.sql` : User, UserPhoto, Favorite, ContestWork + enum 제약 + 인덱스
-- 이후 변경은 `V2__...`, `V3__...` 로 누적 (기존 마이그레이션 수정 금지 → 확장만)
+- `V2__auth_refresh_tokens.sql` : RefreshToken(사용자당 1개·토큰 해시·만료 시각)
+- 이후 변경은 `V3__...`로 누적 (기존 마이그레이션 수정 금지 → 확장만)
 - 보강 필드(ContestWork.lat/lng, crowdAttractionName)는 V1에 컬럼만 두고 값은 배치로 채움

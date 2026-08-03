@@ -19,10 +19,11 @@
 | 07 | [사진 저장](07-storage.md) | 포토 비교용 업로드 저장 | ✅ |
 | 08 | [화면·라우트](08-screens.md) | 페이지 구조·이동 흐름 | ✅ |
 | 09 | [비기능 요구사항](09-nfr.md) | 반응형·에러·쿼터 대응 | ✅ |
+| — | [개발 진행 로그](development-log/README.md) | 마일스톤·커밋별 구현 경과와 검증 기록 | 진행 중 |
 
 ## 확정 결정 요약
 
-- **백엔드**: Spring Boot + JPA + MySQL
+- **백엔드**: Spring Boot + JPA + Supabase PostgreSQL
 - **프론트**: React (웹) + Capacitor → 웹 + Android 앱(지금), iOS 추후. 모바일 우선 반응형.
-- **인증**: 카카오 소셜 로그인 + JWT
+- **인증**: 카카오 인가 코드 로그인 + access JWT / HttpOnly refresh 쿠키
 - **외부 API**: 한국관광공사 관광사진/공모전, 관광지 집중률 예측, Kakao Map (키 발급 완료)

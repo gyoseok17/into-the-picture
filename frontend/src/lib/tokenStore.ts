@@ -17,15 +17,7 @@ export function setAccessToken(token: string | null): void {
   accessToken = token
 }
 
-export async function getRefreshToken(): Promise<string | null> {
-  const { value } = await Preferences.get({ key: REFRESH_KEY })
-  return value
-}
-
-export async function setRefreshToken(token: string | null): Promise<void> {
-  if (token) {
-    await Preferences.set({ key: REFRESH_KEY, value: token })
-  } else {
-    await Preferences.remove({ key: REFRESH_KEY })
-  }
+/** Removes a refresh token left by the pre-HttpOnly-cookie implementation. */
+export async function clearLegacyRefreshToken(): Promise<void> {
+  await Preferences.remove({ key: REFRESH_KEY })
 }

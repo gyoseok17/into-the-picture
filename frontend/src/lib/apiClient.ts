@@ -5,12 +5,24 @@ import axios, {
 } from 'axios'
 import { API_BASE } from './env'
 import type { ApiErrorBody, AppError } from './api-types'
-import {
-  getAccessToken,
-  getRefreshToken,
-  setAccessToken,
-  setRefreshToken,
-} from './tokenStore'
+import { getAccessToken, setAccessToken } from './tokenStore'
+import { notifyAuthExpired } from './authSessionEvents'
+
+export interface AuthUser {
+  id: number
+  nickname: string
+  profileImageUrl: string | null
+  email: string | null
+}
+
+export interface AuthResponse {
+  accessToken: string
+  tokenType: 'Bearer'
+  expiresIn: number
+  user: AuthUser
+}
+
+export type UserProfile = AuthUser
 
 // 401 재시도 1회 표시용 플래그(any 캐스팅 대신 타입 확장).
 type RetriableConfig = InternalAxiosRequestConfig & { _retry?: boolean }
@@ -18,6 +30,7 @@ type RetriableConfig = InternalAxiosRequestConfig & { _retry?: boolean }
 export const apiClient = axios.create({
   baseURL: API_BASE,
   headers: { 'Content-Type': 'application/json' },
+  withCredentials: true,
   // NFR(09): 외부 의존 타임아웃. 응답 없으면 빈/에러 상태로.
   timeout: 10_000,
 })
@@ -37,19 +50,17 @@ apiClient.interceptors.request.use((config) => {
 let refreshing: Promise<string | null> | null = null
 
 async function refreshAccessToken(): Promise<string | null> {
-  const refreshToken = await getRefreshToken()
-  if (!refreshToken) return null
   try {
-    const { data } = await axios.post<{ accessToken: string; refreshToken?: string }>(
+    const { data } = await axios.post<AuthResponse>(
       `${API_BASE}/auth/refresh`,
-      { refreshToken },
+      undefined,
+      { withCredentials: true },
     )
     setAccessToken(data.accessToken)
-    if (data.refreshToken) await setRefreshToken(data.refreshToken)
     return data.accessToken
   } catch {
     setAccessToken(null)
-    await setRefreshToken(null)
+    notifyAuthExpired()
     return null
   }
 }
@@ -60,7 +71,8 @@ apiClient.interceptors.response.use(
   async (error: AxiosError<ApiErrorBody>) => {
     const original = error.config as RetriableConfig | undefined
 
-    if (error.response?.status === 401 && original && !original._retry) {
+    const isAuthEndpoint = original?.url?.startsWith('/auth/')
+    if (error.response?.status === 401 && original && !original._retry && !isAuthEndpoint) {
       original._retry = true
       if (!refreshing) {
         refreshing = refreshAccessToken().finally(() => {

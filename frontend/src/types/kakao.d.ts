@@ -89,7 +89,16 @@ declare global {
     MarkerClusterer: new (options: KakaoMarkerClustererOptions) => KakaoMarkerClusterer
   }
 
+  interface KakaoAuthSdk {
+    isInitialized(): boolean
+    init(key: string): void
+    Auth: {
+      authorize(options: { redirectUri: string; state: string }): void
+    }
+  }
+
   interface Window {
     kakao?: { maps: KakaoMapsNamespace }
+    Kakao?: KakaoAuthSdk
   }
 }

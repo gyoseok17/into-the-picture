@@ -26,7 +26,7 @@
 
 | 메서드 | 경로 | 설명 | 🔒 |
 |--------|------|------|:--:|
-| POST | `/auth/kakao` | 카카오 로그인. 프론트가 받은 인가코드/토큰 전달 → 우리 JWT 발급 | |
+| POST | `/auth/kakao` | 카카오 인가 코드 교환·로그인 → 우리 JWT 발급 | |
 | POST | `/auth/refresh` | 리프레시 토큰으로 액세스 토큰 재발급 | |
 | POST | `/auth/logout` | 로그아웃 (리프레시 무효화) | 🔒 |
 | GET | `/users/me` | 내 프로필 조회 | 🔒 |
@@ -34,13 +34,29 @@
 **POST /auth/kakao**
 ```json
 // 요청
-{ "kakaoAccessToken": "..." }      // 프론트 카카오 SDK 로그인 후 받은 토큰
+{ "authorizationCode": "...", "redirectUri": "http://localhost:5173/login" }
+// 카카오가 redirectUri로 돌려준 code와, 그 로그인에 사용한 redirect URI를 함께 전달
 // 응답
-{ "accessToken": "<JWT>", "refreshToken": "...", "tokenType": "Bearer", "expiresIn": 3600,
+{ "accessToken": "<JWT>", "tokenType": "Bearer", "expiresIn": 900,
   "user": { "id": 1, "nickname": "홍길동", "profileImageUrl": "https://...", "email": null } }
 ```
 
+응답의 `Set-Cookie` 헤더로 refresh 토큰을 `HttpOnly` 쿠키에 설정한다. refresh 토큰 원문은 JSON 응답에 포함하지 않는다.
+
 자세한 흐름은 `05-auth.md`.
+
+**POST /auth/refresh**
+```json
+// 요청 body 없음. 브라우저가 HttpOnly refresh 쿠키를 자동 전송.
+// 응답: accessToken·tokenType·expiresIn·user 및 회전된 Set-Cookie. 기존 refresh는 더 이상 사용할 수 없음.
+```
+
+**POST /auth/logout**은 인증된 access JWT가 필요하며 성공 시 `204 No Content`를 반환한다.
+
+**GET /users/me**
+```json
+{ "id": 1, "nickname": "홍길동", "profileImageUrl": "https://...", "email": null }
+```
 
 ---
 

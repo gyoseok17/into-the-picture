@@ -50,4 +50,10 @@ public class User extends BaseTimeEntity {
         this.email = email;
         this.role = role != null ? role : Role.USER;
     }
+
+    public void updateKakaoProfile(String nickname, String profileImageUrl, String email) {
+        this.nickname = nickname;
+        this.profileImageUrl = profileImageUrl;
+        this.email = email;
+    }
 }

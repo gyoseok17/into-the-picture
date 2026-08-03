@@ -31,4 +31,5 @@
 - Phase 0·1 및 **M1 기반 + 공모전 수직 슬라이스** 완료(`be434dd`). 공모전 95건 적재·좌표 95/95·집중률 매칭 59/95는 `_workspace/M1_external_dataload_results.md`에 기록.
 - **M1.1 공모전 지도 뷰 완료** — 목록/지도 토글, `/contests/map`, 필터 공유, 카카오 지도 클러스터·반응형 선택 패널·경계 QA를 포함한다.
 - M1.1 계약·실제 API shape·프런트 매핑·QA는 `_workspace/contracts/`, `api-shapes/`, `frontend/`, `qa/`의 `M1.1_*` 산출물에 보존한다.
-- 다음 구현 마일스톤은 사용자 확인 후 M2(인증)로 진행한다.
+- **M2 인증 구현·로컬 브라우저 검증 완료** (`cb0e526`) — 카카오 서버 검증·JWT access/refresh·refresh 해시/회전·보호 경로·프런트 로그인/세션 복구를 구현했다. 실제 카카오 로그인, refresh 쿠키 속성, 세션 복구·로그아웃을 로컬에서 확인했다. 배포 HTTPS 환경 검증은 후속 작업이다.
+- M2 계약·실제 API shape·프런트 매핑·QA는 `_workspace/`의 `M2_*` 산출물에 보존한다.

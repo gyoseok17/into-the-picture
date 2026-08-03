@@ -1,5 +1,14 @@
 # Into the Picture
 
+## Development progress log
+
+`docs/development-log/` is the durable record for milestone and commit progress. Each milestone has its own file; `README.md` is the index.
+
+- For a feature, architectural, security, data-model, or deployment task, create or update its own in-progress milestone file while working.
+- Record implementation scope, design changes and rationale, verification, notable constraints, and next work as they are identified. Never record secret values, tokens, or personal data.
+- Before committing, update the entry with the final scope and verification. After committing, replace the pending marker with the commit hash and date.
+- Keep `_workspace/` for detailed contracts, API shapes, and QA evidence; link to them from the development log instead of duplicating their full contents.
+
 사진으로 여행지를 발견하는 관광 추천 서비스. 설계는 `docs/`(00~09), 검증 과정은 `design-process/`.
 
 ## 하네스: Into the Picture 앱 빌드

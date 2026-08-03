@@ -7,7 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * Authorization 헤더 형식: {@code KakaoAK {restKey}}.
  */
 @ConfigurationProperties(prefix = "external.kakao")
-public record KakaoLocalProperties(String baseUrl, String restKey) {
+public record KakaoLocalProperties(String baseUrl, String restKey, String clientSecret) {
 
     public KakaoLocalProperties {
         if (baseUrl == null || baseUrl.isBlank()) {
@@ -17,5 +17,9 @@ public record KakaoLocalProperties(String baseUrl, String restKey) {
 
     public boolean hasRestKey() {
         return restKey != null && !restKey.isBlank();
+    }
+
+    public boolean hasClientSecret() {
+        return clientSecret != null && !clientSecret.isBlank();
     }
 }

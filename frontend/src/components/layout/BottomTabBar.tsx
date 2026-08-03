@@ -1,10 +1,14 @@
 import { NavLink } from 'react-router-dom'
 
+import { useAuth } from '@/features/auth/AuthProvider'
 import { cn } from '@/lib/utils'
 import { navItems } from './navItems'
 
 // 모바일/앱 전용 하단 탭바(데스크탑 md+에선 숨김). safe-area 하단 패딩 대응.
 export function BottomTabBar() {
+  const { user } = useAuth()
+  const visibleNavItems = navItems.filter((item) => user || item.to !== '/me')
+
   return (
     <nav
       className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 backdrop-blur md:hidden"
@@ -12,7 +16,7 @@ export function BottomTabBar() {
       aria-label="주요 메뉴"
     >
       <ul className="mx-auto flex max-w-screen-sm items-stretch">
-        {navItems.map(({ to, label, icon: Icon, end }) => (
+        {visibleNavItems.map(({ to, label, icon: Icon, end }) => (
           <li key={to} className="flex-1">
             <NavLink
               to={to}

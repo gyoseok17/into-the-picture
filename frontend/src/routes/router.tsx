@@ -9,6 +9,7 @@ import LoginPage from '@/pages/LoginPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 import ContestListPage from '@/features/contest/pages/ContestListPage'
 import ContestDetailPage from '@/features/contest/pages/ContestDetailPage'
+import { RequireAuth } from '@/features/auth/RequireAuth'
 
 // 라우트 맵(docs/08). 하단 탭/상단 네비의 to와 정확히 일치해야 한다(QA 대조 포인트).
 export const router = createBrowserRouter([
@@ -19,9 +20,16 @@ export const router = createBrowserRouter([
       { path: '/contests', element: <ContestListPage /> },
       { path: '/contests/:id', element: <ContestDetailPage /> },
       { path: '/crowd', element: <CrowdPage /> },
-      { path: '/compare', element: <ComparePage /> },
-      { path: '/me', element: <MyPage /> },
       { path: '/login', element: <LoginPage /> },
+      {
+        element: <RequireAuth />,
+        children: [
+          { path: '/compare', element: <ComparePage /> },
+          { path: '/me', element: <MyPage /> },
+          { path: '/me/favorites', element: <MyPage /> },
+          { path: '/me/photos', element: <MyPage /> },
+        ],
+      },
       { path: '*', element: <NotFoundPage /> },
     ],
   },
