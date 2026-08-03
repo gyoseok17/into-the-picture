@@ -16,4 +16,4 @@
 | M1 | 완료 | [M1-foundation-contest-slice.md](M1-foundation-contest-slice.md) |
 | M1.1 | 완료 | [M1.1-contest-map.md](M1.1-contest-map.md) |
 | M2 | 완료 | [M2-kakao-auth.md](M2-kakao-auth.md) |
-| M3 | 진행 중 | [M3-photo-search.md](M3-photo-search.md) |
+| M3 | 완료 | [M3-photo-search.md](M3-photo-search.md) |
