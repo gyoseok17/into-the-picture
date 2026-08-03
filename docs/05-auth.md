@@ -35,6 +35,7 @@
 - JWT 클레임: `sub`(userId), `role`, `tokenType`(`access`/`refresh`), `iat`, `exp`. 서명 키는 환경변수 `JWT_SECRET`(최소 32바이트 raw UTF-8, 운영은 시크릿 매니저).
 - **재발급:** `POST /auth/refresh` 시 브라우저가 refresh 쿠키를 자동 전송 → 새 access와 회전된 refresh 쿠키를 받는다.
 - **로그아웃:** 서버에 저장된 refresh 무효화(아래) + refresh 쿠키 만료 + 클라 access 폐기.
+- 비로그인 초기 화면에서 불필요한 refresh `401`을 피하기 위해, 로그인 성공 시 비밀값이 없는 `itp_session=1` 표시 쿠키도 설정한다. 프런트는 이 표시가 있을 때만 refresh를 요청하며, 실제 인증은 항상 HttpOnly refresh 쿠키와 서버 DB 검증으로만 수행한다.
 
 카카오 REST API 키의 Client Secret을 사용하는 운영 앱은 `KAKAO_CLIENT_SECRET`을 서버 시크릿으로 설정한다. 이 값은 카카오 토큰 교환 요청에만 포함하며 프런트에 전달하지 않는다.
 

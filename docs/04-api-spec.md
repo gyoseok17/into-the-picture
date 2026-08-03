@@ -64,9 +64,7 @@
 
 | 메서드 | 경로 | 설명 | 🔒 |
 |--------|------|------|:--:|
-| GET | `/photos/keywords` | 추천 키워드 목록 (단풍·야경·설경·바다·벚꽃 …) | |
-| GET | `/photos?keyword=&page=&size=&sort=` | 키워드 사진 피드 (keyword 없으면 전체 최신) | |
-| GET | `/photos/{id}` | 사진 상세 | |
+| GET | `/photos?keyword=&page=&size=` | 키워드 사진 피드 (keyword 없으면 전체 최신) | |
 
 ```json
 // GET /photos?keyword=단풍 → content[] 요소 (PhotoDto)
@@ -75,7 +73,7 @@
   "photographer": "천건엽", "location": "제주특별자치도 제주시 한경면",
   "filmMonth": "202509", "keywords": ["숲","산책로","9월 추천여행지"] }
 ```
-> `imageUrl`은 외부 HTTP URL을 **https로 치환/프록시**하여 제공(06 X4).
+> `imageUrl`은 외부 HTTP URL을 **https로 치환**하여 제공(06 X4). 추천 키워드와 별도 사진 상세 API는 두지 않으며, 프런트는 한 응답 페이지 안의 같은 `title + location` 사진을 묶어 상세 모달에서 표시한다.
 
 ---
 

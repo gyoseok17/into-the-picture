@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import axios from 'axios'
 
 import { API_BASE } from '@/lib/env'
-import { clearLegacyRefreshToken, setAccessToken } from '@/lib/tokenStore'
+import { clearLegacyRefreshToken, hasSessionHint, setAccessToken } from '@/lib/tokenStore'
 import { subscribeToAuthExpired } from '@/lib/authSessionEvents'
 import type { AuthResponse, AuthUser } from '@/lib/apiClient'
 import { loginWithKakao, logout as logoutRequest } from './api'
@@ -26,6 +26,7 @@ function isKakaoAuthorizationCallback(): boolean {
 }
 
 function requestBootstrapSession(): Promise<AuthResponse | null> {
+  if (!hasSessionHint()) return Promise.resolve(null)
   if (bootstrapRequest) return bootstrapRequest
 
   const request = (async (): Promise<AuthResponse | null> => {

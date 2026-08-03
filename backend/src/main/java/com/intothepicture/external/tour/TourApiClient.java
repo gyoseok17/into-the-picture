@@ -36,12 +36,16 @@ public class TourApiClient {
      * serviceKey 미설정이면 호출하지 않고 EXTERNAL_ERROR(설정 누락) 로 알린다.
      */
     public List<JsonNode> fetchItems(String operationPath, Map<String, ?> params) {
+        return fetchPage(operationPath, params).items();
+    }
+
+    public DataGoKrEnvelope.Page fetchPage(String operationPath, Map<String, ?> params) {
         if (!properties.hasServiceKey()) {
             throw new ExternalApiException(ErrorCode.EXTERNAL_ERROR, "DATA_GO_KR_KEY 미설정 — 관광공사 API 호출 불가");
         }
         URI uri = QueryString.toUri(properties.baseUrl() + "/" + operationPath, commonParams(params));
         String body = httpClient.getString(uri, Map.of());
-        return DataGoKrEnvelope.items(body, objectMapper);
+        return DataGoKrEnvelope.page(body, objectMapper);
     }
 
     private Map<String, Object> commonParams(Map<String, ?> params) {

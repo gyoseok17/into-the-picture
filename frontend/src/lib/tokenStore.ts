@@ -21,3 +21,8 @@ export function setAccessToken(token: string | null): void {
 export async function clearLegacyRefreshToken(): Promise<void> {
   await Preferences.remove({ key: REFRESH_KEY })
 }
+
+/** A non-sensitive cookie hint avoids a refresh call for known logged-out visitors. */
+export function hasSessionHint(): boolean {
+  return typeof document !== 'undefined' && document.cookie.split('; ').includes('itp_session=1')
+}

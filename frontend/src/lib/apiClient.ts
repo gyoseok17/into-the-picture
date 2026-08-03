@@ -5,7 +5,7 @@ import axios, {
 } from 'axios'
 import { API_BASE } from './env'
 import type { ApiErrorBody, AppError } from './api-types'
-import { getAccessToken, setAccessToken } from './tokenStore'
+import { getAccessToken, hasSessionHint, setAccessToken } from './tokenStore'
 import { notifyAuthExpired } from './authSessionEvents'
 
 export interface AuthUser {
@@ -50,6 +50,7 @@ apiClient.interceptors.request.use((config) => {
 let refreshing: Promise<string | null> | null = null
 
 async function refreshAccessToken(): Promise<string | null> {
+  if (!hasSessionHint()) return null
   try {
     const { data } = await axios.post<AuthResponse>(
       `${API_BASE}/auth/refresh`,

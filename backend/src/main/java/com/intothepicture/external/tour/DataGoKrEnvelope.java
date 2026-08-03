@@ -27,6 +27,11 @@ public final class DataGoKrEnvelope {
 
     /** 응답 JSON 문자열 → 항목 노드 리스트. 오류 래퍼/비정상 resultCode 면 {@link ExternalApiException}. */
     public static List<JsonNode> items(String json, ObjectMapper objectMapper) {
+        return page(json, objectMapper).items();
+    }
+
+    /** 정상 응답의 항목과 제공처 totalCount를 함께 반환한다. */
+    public static Page page(String json, ObjectMapper objectMapper) {
         JsonNode root = readTree(json, objectMapper);
         rejectGatewayError(root, json);
 
@@ -38,8 +43,12 @@ public final class DataGoKrEnvelope {
         if (!RESULT_OK.equals(resultCode)) {
             throw error("resultCode=" + resultCode + " " + header.path("resultMsg").asText());
         }
-        return collectItems(root.path("response").path("body").path("items").path("item"));
+        JsonNode body = root.path("response").path("body");
+        List<JsonNode> items = collectItems(body.path("items").path("item"));
+        return new Page(items, body.path("totalCount").asLong(items.size()));
     }
+
+    public record Page(List<JsonNode> items, long totalCount) {}
 
     private static List<JsonNode> collectItems(JsonNode item) {
         List<JsonNode> result = new ArrayList<>();

@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/auth")
 public class AuthController {
     private static final String REFRESH_COOKIE = "itp_refresh";
+    private static final String SESSION_HINT_COOKIE = "itp_session";
     private static final String REFRESH_COOKIE_PATH = "/api/v1/auth";
     private final AuthService authService;
     private final boolean refreshCookieSecure;
@@ -42,12 +43,14 @@ public class AuthController {
     public ResponseEntity<Void> logout(@AuthenticationPrincipal JwtPrincipal principal) {
         authService.logout(principal.userId());
         return ResponseEntity.noContent().header(HttpHeaders.SET_COOKIE, expiredRefreshCookie().toString())
+            .header(HttpHeaders.SET_COOKIE, expiredSessionHintCookie().toString())
             .header(HttpHeaders.CACHE_CONTROL, "no-store").build();
     }
 
     private ResponseEntity<SessionResponse> sessionResponse(AuthResponse session) {
         return ResponseEntity.ok()
             .header(HttpHeaders.SET_COOKIE, refreshCookie(session.refreshToken()).toString())
+            .header(HttpHeaders.SET_COOKIE, sessionHintCookie().toString())
             .header(HttpHeaders.CACHE_CONTROL, "no-store")
             .body(new SessionResponse(session.accessToken(), session.tokenType(), session.expiresIn(), session.user()));
     }
@@ -60,5 +63,15 @@ public class AuthController {
     private ResponseCookie expiredRefreshCookie() {
         return ResponseCookie.from(REFRESH_COOKIE, "").httpOnly(true).secure(refreshCookieSecure)
             .sameSite("Lax").path(REFRESH_COOKIE_PATH).maxAge(0).build();
+    }
+
+    private ResponseCookie sessionHintCookie() {
+        return ResponseCookie.from(SESSION_HINT_COOKIE, "1").secure(refreshCookieSecure)
+            .sameSite("Lax").path("/").maxAge(14 * 24 * 60 * 60).build();
+    }
+
+    private ResponseCookie expiredSessionHintCookie() {
+        return ResponseCookie.from(SESSION_HINT_COOKIE, "").secure(refreshCookieSecure)
+            .sameSite("Lax").path("/").maxAge(0).build();
     }
 }
