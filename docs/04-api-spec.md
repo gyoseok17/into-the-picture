@@ -114,18 +114,27 @@
 
 | 메서드 | 경로 | 설명 | 🔒 |
 |--------|------|------|:--:|
-| GET | `/regions` | 시도·시군구 코드 목록 (선택 UI용) | |
+| GET | `/crowd/regions` | 집중률 조회 가능 시·도 목록 | |
+| GET | `/crowd/sigungu?areaCd=` | 선택 시·도의 시·군·구 목록 | |
 | GET | `/crowd/attractions?areaCd=&sigunguCd=` | 해당 시군구 집중률 대상 관광지 목록 | |
+| GET | `/crowd/contests?attraction=` | 선택 관광지 관련 수상작 최대 3건 | |
 | GET | `/crowd?areaCd=&sigunguCd=&attraction=` | 특정 관광지 30일 집중률 캘린더 | |
 
 ```json
-// GET /regions
-[ { "areaCd": "48", "areaNm": "경상남도",
-    "sigungus": [ { "sigunguCd": "48890", "sigunguNm": "합천군" } ] } ]
+// GET /crowd/regions
+[ { "areaCd": "48", "areaNm": "경상남도" } ]
+
+// GET /crowd/sigungu?areaCd=48
+[ { "areaCd": "48", "areaNm": "경상남도", "sigunguCd": "48890", "sigunguNm": "합천군" } ]
+
+// GET /crowd/attractions?areaCd=48&sigunguCd=48890
+[ "가야산국립공원(홍류동,청량동지구)" ]
+
+// GET /crowd/contests?attraction=가야산국립공원... → ContestSummaryDto 배열, 최대 3건
 
 // GET /crowd → CrowdForecastDto (위 3번과 동일 형태)
 ```
-> 독립 기능(사용자가 관광지 선택 → 캘린더). 수상작 클릭 플로우는 3번 `/contests/{id}/crowd` 사용.
+> 독립 기능은 사용자가 관광지를 선택하면 관련 수상작, 같은 이름의 관광사진 검색 결과, 30일 캘린더 순으로 표시한다. 사진 검색은 이름 기반이므로 다른 지역 사진이 섞일 수 있다. 수상작 클릭 플로우는 3번 `/contests/{id}/crowd` 사용.
 
 ---
 

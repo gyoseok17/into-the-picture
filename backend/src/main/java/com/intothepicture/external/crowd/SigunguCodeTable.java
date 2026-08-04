@@ -20,10 +20,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class SigunguCodeTable {
 
+    private final List<SigunguCode> codes;
     private final Map<String, List<SigunguCode>> byName;
 
     public SigunguCodeTable(ObjectMapper objectMapper) {
-        this.byName = load(objectMapper).stream()
+        this.codes = load(objectMapper);
+        this.byName = codes.stream()
             .collect(Collectors.groupingBy(code -> normalize(code.sigunguNm())));
     }
 
@@ -44,6 +46,16 @@ public class SigunguCodeTable {
         }
         return candidates.stream()
             .filter(code -> code.areaCd().equals(sidoCode))
+            .findFirst();
+    }
+
+    public List<SigunguCode> all() {
+        return codes;
+    }
+
+    public Optional<SigunguCode> find(String areaCd, String sigunguCd) {
+        return codes.stream()
+            .filter(code -> code.areaCd().equals(areaCd) && code.sigunguCd().equals(sigunguCd))
             .findFirst();
     }
 

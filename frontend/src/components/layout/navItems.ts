@@ -19,7 +19,7 @@ export interface NavItem {
 export const navItems: NavItem[] = [
   { to: '/contests', label: '수상작', icon: Trophy },
   { to: '/', label: '검색', icon: Compass, end: true },
-  { to: '/crowd', label: '타이밍', icon: CalendarClock },
+  { to: '/crowd', label: '혼잡도', icon: CalendarClock },
   { to: '/compare', label: '비교', icon: Images },
   { to: '/me', label: '마이', icon: User },
 ]

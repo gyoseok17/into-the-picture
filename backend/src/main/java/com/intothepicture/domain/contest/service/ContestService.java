@@ -69,6 +69,20 @@ public class ContestService {
             .toList();
     }
 
+    /** 혼잡도 탭에서 선택한 관광지와 관련 있는 수상작(최대 3건)을 사진 탐색용으로 제공한다. */
+    @Transactional(readOnly = true)
+    public List<ContestSummaryDto> findRelatedToAttraction(String attractionName) {
+        if (attractionName == null || attractionName.isBlank()) {
+            return List.of();
+        }
+        return contestRepository.findAll().stream()
+            .filter(work -> matchesAttraction(work, attractionName))
+            .sorted(Comparator.comparing(ContestWork::getId).reversed())
+            .limit(3)
+            .map(ContestMapper::toSummary)
+            .toList();
+    }
+
     @Transactional(readOnly = true)
     public FilterOptionsDto getFilterOptions() {
         return new FilterOptionsDto(
@@ -126,6 +140,31 @@ public class ContestService {
         }
         String[] parts = location.split("[,/]");
         return parts[parts.length - 1].trim();
+    }
+
+    private boolean matchesAttraction(ContestWork work, String attractionName) {
+        List<String> candidates = new java.util.ArrayList<>();
+        candidates.add(lastSegment(work.getLocation()));
+        candidates.add(work.getCrowdAttractionName());
+        if (work.getKeywordsRaw() != null) {
+            for (String keyword : work.getKeywordsRaw().split(",")) {
+                candidates.add(keyword.trim());
+            }
+        }
+        return candidates.stream().anyMatch(candidate -> namesOverlap(candidate, attractionName));
+    }
+
+    private boolean namesOverlap(String left, String right) {
+        String normalizedLeft = normalizeName(left);
+        String normalizedRight = normalizeName(right);
+        return normalizedLeft.length() >= 2 && normalizedRight.length() >= 2
+            && (normalizedLeft.equals(normalizedRight)
+                || normalizedLeft.contains(normalizedRight)
+                || normalizedRight.contains(normalizedLeft));
+    }
+
+    private String normalizeName(String name) {
+        return name == null ? "" : name.replaceAll("\\s+", "");
     }
 
     /** 계절 필터 옵션을 봄·여름·가을·겨울 순으로 정렬(그 외 값은 뒤로). */

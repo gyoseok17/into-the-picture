@@ -3,6 +3,8 @@ package com.intothepicture.external.crowd;
 import com.intothepicture.domain.crowd.port.CrowdForecast;
 import com.intothepicture.domain.crowd.port.CrowdProvider;
 import com.intothepicture.domain.crowd.port.CrowdQuery;
+import com.intothepicture.domain.crowd.port.CrowdRegion;
+import com.intothepicture.domain.crowd.port.CrowdSigungu;
 import com.intothepicture.domain.crowd.port.DailyRate;
 import com.intothepicture.external.crowd.AttractionMatcher.AttractionMatch;
 import com.intothepicture.global.exception.ExternalApiException;
@@ -52,6 +54,44 @@ public class CrowdRateAdapter implements CrowdProvider {
         }
     }
 
+    @Override
+    public List<CrowdRegion> regions() {
+        return sigunguCodeTable.all().stream()
+            .collect(java.util.stream.Collectors.toMap(SigunguCode::areaCd, SigunguCode::areaNm, (left, right) -> left))
+            .entrySet().stream()
+            .map(entry -> new CrowdRegion(entry.getKey(), entry.getValue()))
+            .sorted(Comparator.comparing(CrowdRegion::areaNm))
+            .toList();
+    }
+
+    @Override
+    public List<CrowdSigungu> sigungus(String areaCd) {
+        if (areaCd == null || areaCd.isBlank()) {
+            return List.of();
+        }
+        return sigunguCodeTable.all().stream()
+            .filter(code -> code.areaCd().equals(areaCd))
+            .map(code -> new CrowdSigungu(code.areaCd(), code.areaNm(), code.sigunguCd(), code.sigunguNm()))
+            .sorted(Comparator.comparing(CrowdSigungu::sigunguNm))
+            .toList();
+    }
+
+    @Override
+    public List<String> attractions(String areaCd, String sigunguCd) {
+        return sigunguCodeTable.find(areaCd, sigunguCd)
+            .map(code -> attractionNames(crowdApiClient.fetch(code.areaCd(), code.sigunguCd())))
+            .orElseGet(List::of);
+    }
+
+    @Override
+    public Optional<CrowdForecast> getForecast(String areaCd, String sigunguCd, String attractionName) {
+        if (attractionName == null || attractionName.isBlank()) {
+            return Optional.empty();
+        }
+        return sigunguCodeTable.find(areaCd, sigunguCd)
+            .flatMap(code -> forecast(code, attractionName));
+    }
+
     private Optional<CrowdForecast> forecast(SigunguCode code, String placeNameText) {
         List<CrowdRow> rows = crowdApiClient.fetch(code.areaCd(), code.sigunguCd());
         if (rows.isEmpty()) {
@@ -73,6 +113,15 @@ public class CrowdRateAdapter implements CrowdProvider {
             grouped.computeIfAbsent(row.attractionName(), key -> new java.util.ArrayList<>()).add(row);
         }
         return grouped;
+    }
+
+    private List<String> attractionNames(List<CrowdRow> rows) {
+        return rows.stream()
+            .map(CrowdRow::attractionName)
+            .filter(name -> name != null && !name.isBlank())
+            .distinct()
+            .sorted()
+            .toList();
     }
 
     private CrowdForecast toForecast(AttractionMatch match, List<CrowdRow> rows, SigunguCode code) {
