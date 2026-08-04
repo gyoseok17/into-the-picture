@@ -65,14 +65,15 @@ public class ContestSyncJob {
 
     private ContestWork toEntity(ContestApiItem item) {
         Award award = AwardParser.parse(item.awardRaw());
-        ParsedLocation location = LocationParser.parse(item.location());
+        String locationText = ContestLocationOverrides.apply(item.title(), item.location());
+        ParsedLocation location = LocationParser.parse(locationText);
         String season = SeasonParser.parse(item.keywordsRaw());
 
         return ContestWork.builder()
             .contentId(item.contentId())
             .title(item.title())
             .titleEn(item.titleEn())
-            .location(item.location())
+            .location(locationText)
             .locationEn(item.locationEn())
             .sidoCode(item.sidoCode())
             .sido(location.sido())

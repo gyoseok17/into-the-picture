@@ -108,7 +108,7 @@ BaseTimeEntity
 | id | BIGINT | PK |
 | contentId | VARCHAR(50) | UNIQUE, 외부 식별자(`contentId`) |
 | title / titleEn | VARCHAR(255) | `koTitle` / `enTitle` |
-| location / locationEn | VARCHAR(255) | `koFilmst` / `enFilmst` (촬영지 텍스트) |
+| location / locationEn | VARCHAR(255) | `koFilmst` / `enFilmst` 기반 촬영지 텍스트. 실제 촬영 관점이 사용자 검토로 확정된 소수 작품은 보정값을 사용 |
 | sidoCode | VARCHAR(10) | `lDongRegnCd` (법정동 시도 코드) |
 | sido / sigungu | VARCHAR(50) | **파싱**: location에서 시도·시군구 추출 (집중률 매칭·필터용) |
 | photographer / photographerEn | VARCHAR(100) | `koCmanNm` / `enCmanNm` |

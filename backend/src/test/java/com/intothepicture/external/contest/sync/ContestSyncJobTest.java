@@ -82,6 +82,20 @@ class ContestSyncJobTest {
     }
 
     @Test
+    @DisplayName("승인된 촬영지 보정은 동기화 시에도 유지한다")
+    void appliesApprovedLocationOverride() {
+        when(contestApiClient.fetchAll()).thenReturn(List.of(item("C1", "황금빛 운석충돌구")));
+        when(contestRepository.existsByContentId("C1")).thenReturn(false);
+
+        contestSyncJob.sync();
+
+        ArgumentCaptor<ContestWork> captor = ArgumentCaptor.forClass(ContestWork.class);
+        verify(contestRepository).save(captor.capture());
+        assertThat(captor.getValue().getLocation()).isEqualTo("경상남도 합천군, 대암산 활공장");
+        assertThat(captor.getValue().getSigungu()).isEqualTo("합천군");
+    }
+
+    @Test
     @DisplayName("contentId 없는 항목은 저장하지 않고 skip")
     void skipsItemWithoutContentId() {
         when(contestApiClient.fetchAll()).thenReturn(List.of(item(null, "식별자없음")));
