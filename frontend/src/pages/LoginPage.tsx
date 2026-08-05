@@ -32,6 +32,10 @@ export default function LoginPage() {
   useEffect(() => {
     const providerError = kakaoCallbackError(params)
     if (providerError) { setError(providerError); return }
+    // StrictMode의 두 번째 마운트는 첫 번째 마운트가 state를 소비한 뒤에 실행된다.
+    // 이미 제출한 인가 코드는 다시 state 검증을 하지 않아 잘못된 실패 문구를 막는다.
+    const callbackCode = params.get('code')
+    if (callbackCode && submittedCallbackCodes.has(callbackCode)) return
     let callback
     try { callback = consumeKakaoAuthorizationCallback(params) } catch (caught) { setError(errorMessage(caught)); return }
     if (!callback || callbackStarted.current || submittedCallbackCodes.has(callback.authorizationCode)) return
@@ -50,7 +54,9 @@ export default function LoginPage() {
     loadKakaoAuthSdk().then(() => setIsSdkReady(true)).catch((caught: unknown) => setError(errorMessage(caught)))
   }, [])
 
-  if (!isBootstrapping && user) return <Navigate to={returnTo} replace />
+  // 카카오 콜백 URL에는 returnTo가 없으므로, code 처리 중에는 아래 자동 이동을 막는다.
+  // 콜백 effect가 sessionStorage에 보관한 원래 주소로 이동한다.
+  if (!isBootstrapping && user && !params.get('code')) return <Navigate to={returnTo} replace />
 
   async function handleLogin(): Promise<void> {
     setError(null)

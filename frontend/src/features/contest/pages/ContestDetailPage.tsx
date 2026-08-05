@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ChevronLeft, Heart } from 'lucide-react'
 
@@ -14,6 +14,10 @@ import { useContestCrowd } from '../hooks/useContestCrowd'
 import { ContestMap } from '../components/ContestMap'
 import { CrowdCalendar } from '../components/CrowdCalendar'
 import type { CrowdForecast } from '../types'
+import { useAuth } from '@/features/auth/AuthProvider'
+import { useContestFavoriteStatus, useToggleContestFavorite } from '@/features/favorite/hooks/useFavorites'
+import { LoginRequiredDialog } from '@/features/favorite/components/LoginRequiredDialog'
+import { FavoriteSaveErrorNotice } from '@/features/favorite/components/FavoriteSaveErrorNotice'
 
 // 핵심 플로우(docs/04): 수상작 클릭 → 상세 + 좌표(지도/길안내) + 집중률 캘린더.
 export default function ContestDetailPage() {
@@ -23,9 +27,21 @@ export default function ContestDetailPage() {
 
   const detailQuery = useContestDetail(id)
   const detail = detailQuery.data
+  const { user } = useAuth()
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false)
+  const favoriteStatus = useContestFavoriteStatus(id, Boolean(user && isValidId))
+  const toggleFavorite = useToggleContestFavorite(id)
 
   // crowdAvailable=true일 때만 호출(enabled). 204면 data=null → 섹션 숨김.
   const crowdQuery = useContestCrowd(id, detail?.crowdAvailable ?? false)
+
+  function handleFavorite(): void {
+    if (!user) {
+      setShowLoginPrompt(true)
+      return
+    }
+    if (detail) toggleFavorite.mutate({ favorite: favoriteStatus.data?.favorite ?? false, contest: detail })
+  }
 
   return (
     <article className="space-y-5">
@@ -59,15 +75,15 @@ export default function ContestDetailPage() {
               <h1 className="text-xl font-semibold tracking-tight">
                 {detail.title}
               </h1>
-              {/* 즐겨찾기는 M6 — 자리만(비활성) */}
               <Button
                 variant="outline"
                 size="sm"
-                disabled
+                disabled={toggleFavorite.isPending || Boolean(user && favoriteStatus.isPending)}
+                onClick={handleFavorite}
                 className="shrink-0 gap-1.5"
-                title="준비 중인 기능이에요"
+                title={user ? undefined : '로그인 후 저장할 수 있어요'}
               >
-                <Heart className="h-4 w-4" /> 즐겨찾기
+                <Heart className={`h-4 w-4 ${favoriteStatus.data?.favorite ? 'fill-current text-rose-500' : ''}`} /> {favoriteStatus.data?.favorite ? '저장됨' : '저장'}
               </Button>
             </div>
 
@@ -109,6 +125,8 @@ export default function ContestDetailPage() {
           ) : null}
         </>
       ) : null}
+      <LoginRequiredDialog open={showLoginPrompt} returnTo={`/contests/${id}`} onClose={() => setShowLoginPrompt(false)} />
+      <FavoriteSaveErrorNotice open={toggleFavorite.isError} onClose={() => toggleFavorite.reset()} />
     </article>
   )
 }

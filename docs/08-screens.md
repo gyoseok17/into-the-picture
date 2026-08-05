@@ -19,11 +19,10 @@
 | `/` | **검색** — 키워드 입력 + 최신/검색 사진 피드 | `/photos` | |
 | `/` (검색 후) | 사진 앨범 상세 모달 — 이미지·촬영지·관련 키워드 | 기존 `/photos` 응답 | |
 | `/contests` | **수상작** 목록 + 필터(계절·등급·부문·지역) | `/contests`, `/contests/filters` | |
-| `/contests/:id` | 수상작 상세 — 이미지·지도·길안내·집중률·즐겨찾기 | `/contests/:id`, `/contests/:id/crowd` | |
+| `/contests/:id` | 수상작 상세 — 이미지·지도·길안내·집중률·하트 저장 | `/contests/:id`, `/contests/:id/crowd`, `/me/favorites/contests/:id` | |
 | `/crowd` | **혼잡도** — 지역→관광지 선택, 수상작·관광사진·30일 캘린더 | `/crowd/regions`, `/crowd/sigungu`, `/crowd/attractions`, `/crowd/contests`, `/photos`, `/crowd` | |
 | `/compare` | **비교** — 내 사진 업로드 + 수상작 나란히 | `/me/photos`, `/contests` | 🔒 |
-| `/me` | **마이** — 프로필 | `/users/me` | 🔒 |
-| `/me/favorites` | 즐겨찾기 목록 | `/me/favorites` | 🔒 |
+| `/me` | **마이** — 프로필·저장한 수상작 목록 | `/users/me`, `/me/favorites/contests` | 🔒 |
 | `/me/photos` | 내 업로드 사진 관리 | `/me/photos` | 🔒 |
 | `/login` | 카카오 로그인 | `/auth/kakao` | |
 
@@ -33,7 +32,7 @@
 1. 대표 이미지(원본) + 제목·촬영자·수상정보
 2. **지도** — 좌표(lat/lng)에 마커 (카카오 JS SDK) + **길안내** 버튼
 3. **집중률 캘린더** — `crowdAvailable=true`면 shadcn `Calendar`에 30일 혼잡도 색상 + 추천일 강조. 없으면 섹션 숨김(graceful)
-4. **즐겨찾기** 토글
+4. **하트 저장** 토글 — 비로그인 시 로그인 뒤 원래 작품으로 복귀
 5. (향후) **주변 할거리** 섹션 (B6)
 
 ## 컴포넌트 ↔ shadcn 매핑

@@ -159,16 +159,19 @@
 
 | 메서드 | 경로 | 설명 |
 |--------|------|------|
-| GET | `/me/favorites?type=` | 즐겨찾기 목록 (type: PHOTO/CONTEST/ATTRACTION) |
-| POST | `/me/favorites` | 추가 |
-| DELETE | `/me/favorites/{id}` | 삭제 |
+| GET | `/me/favorites/contests` | 저장한 수상작 목록 |
+| GET | `/me/favorites/contests/{contestId}` | 특정 수상작 저장 여부 |
+| POST | `/me/favorites/contests/{contestId}` | 수상작 저장 |
+| DELETE | `/me/favorites/contests/{contestId}` | 수상작 저장 해제 |
 
 ```json
-// POST /me/favorites 요청 / FavoriteDto 응답
-{ "targetType": "CONTEST", "source": "CONTEST", "externalId": "DVvwaI",
-  "snapshotTitle": "가야산 설경", "snapshotImageUrl": "https://...image3_1.jpg" }
+// GET /me/favorites/contests/{contestId}
+{ "favorite": true }
+
+// GET /me/favorites/contests → FavoriteContestDto[]
+{ "favoriteId": 5, "contestId": 12, "contest": { "id": 12, "title": "가야산 설경", "thumbUrl": "https://..." }, "createdAt": "2026-08-04T19:45:00" }
 ```
-> `snapshot*` 저장 이유: 외부 실시간 호출 회피 — 목록 표시는 스냅샷, 상세는 externalId로 조회(03).
+> M5는 수상작 저장만 제공한다. 서버가 수상작 ID로 제목·이미지 스냅샷을 저장하므로 클라이언트가 임의 데이터를 저장할 수 없다. 사진·관광지 저장은 같은 테이블과 대상 종류를 확장해 후속 추가한다.
 
 ---
 
