@@ -5,7 +5,7 @@ import axios, {
 } from 'axios'
 import { API_BASE } from './env'
 import type { ApiErrorBody, AppError } from './api-types'
-import { getAccessToken, hasSessionHint, setAccessToken } from './tokenStore'
+import { clearSessionHint, getAccessToken, hasSessionHint, setAccessToken } from './tokenStore'
 import { notifyAuthExpired } from './authSessionEvents'
 
 export interface AuthUser {
@@ -61,6 +61,7 @@ async function refreshAccessToken(): Promise<string | null> {
     return data.accessToken
   } catch {
     setAccessToken(null)
+    clearSessionHint()
     notifyAuthExpired()
     return null
   }

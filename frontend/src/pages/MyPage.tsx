@@ -12,12 +12,16 @@ import { useAuth } from '@/features/auth/AuthProvider'
 import { FavoriteSaveErrorNotice } from '@/features/favorite/components/FavoriteSaveErrorNotice'
 import { useFavoriteContests, useToggleContestFavorite } from '@/features/favorite/hooks/useFavorites'
 import type { FavoriteContest } from '@/features/favorite/types'
+import { useDeleteUserPhoto, useUserPhotos } from '@/features/comparison/hooks/useComparison'
+import type { UserPhoto } from '@/features/comparison/types'
+import { ComparisonErrorNotice } from '@/features/comparison/components/ComparisonErrorNotice'
 
 export default function MyPage() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const favorites = useFavoriteContests()
+  const userPhotos = useUserPhotos()
 
   if (!user) return null
 
@@ -67,9 +71,13 @@ export default function MyPage() {
         {!favorites.isPending && !favorites.isError && favorites.data?.length === 0 ? <EmptyState title="저장한 수상작이 없어요" description="수상작 상세에서 하트를 눌러 저장해 보세요." /> : null}
         {favorites.data?.length ? <div className="grid gap-3 sm:grid-cols-2">{favorites.data.map((favorite) => <FavoriteContestCard key={favorite.favoriteId} favorite={favorite} />)}</div> : null}
       </section>
+
+      <section className="space-y-3"><div><h2 className="font-semibold">내 사진</h2><p className="mt-1 text-sm text-muted-foreground">비교에 쓸 사진은 비교 탭에서 올리고 여기서 관리할 수 있어요.</p></div>{userPhotos.isPending ? <LoadingState label="내 사진을 불러오는 중…" /> : null}{userPhotos.isError ? <ErrorState error={userPhotos.error} onRetry={() => void userPhotos.refetch()} /> : null}{!userPhotos.isPending && !userPhotos.isError && userPhotos.data?.length === 0 ? <EmptyState title="올린 사진이 없어요" description="비교 탭에서 사진을 올려 보세요." /> : null}{userPhotos.data?.length ? <div className="grid grid-cols-2 gap-3">{userPhotos.data.map((photo) => <UserPhotoCard key={photo.id} photo={photo} />)}</div> : null}</section>
     </section>
   )
 }
+
+function UserPhotoCard({ photo }: { photo: UserPhoto }) { const remove=useDeleteUserPhoto(); return <><Card className="relative overflow-hidden"><AspectImage src={photo.url} alt={photo.originalFilename ?? '내 사진'} ratioClassName="aspect-[4/3]" /><div className="flex items-center justify-between gap-2 p-2"><p className="line-clamp-1 text-xs text-muted-foreground">{photo.originalFilename ?? '내 사진'}</p><Button size="sm" variant="ghost" disabled={remove.isPending} onClick={() => remove.mutate(photo.id)}>삭제</Button></div></Card><ComparisonErrorNotice message={remove.isError ? '비교 결과에 사용 중인 사진은 삭제할 수 없어요.' : null} onClose={() => remove.reset()} /></> }
 
 function FavoriteContestCard({ favorite }: { favorite: FavoriteContest }) {
   const toggleFavorite = useToggleContestFavorite(favorite.contestId)

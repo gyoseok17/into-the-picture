@@ -18,6 +18,7 @@ dist/
 # --- java / backend (추후) ---
 target/
 build/
+bin/
 .gradle/
 .tmp-gradle/
 

@@ -12,7 +12,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -48,22 +47,14 @@ public class UserPhoto extends BaseTimeEntity {
     @Column(name = "file_size")
     private Long fileSize;
 
-    @Column(name = "taken_at")
-    private LocalDateTime takenAt;
-
-    @Column(length = 500)
-    private String memo;
-
     @Builder
     private UserPhoto(User user, String storageKey, String url, String originalFilename,
-                      String contentType, Long fileSize, LocalDateTime takenAt, String memo) {
+                      String contentType, Long fileSize) {
         this.user = user;
         this.storageKey = storageKey;
         this.url = url;
         this.originalFilename = originalFilename;
         this.contentType = contentType;
         this.fileSize = fileSize;
-        this.takenAt = takenAt;
-        this.memo = memo;
     }
 }

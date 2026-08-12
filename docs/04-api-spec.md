@@ -1,5 +1,7 @@
 # 04. API 명세 (REST)
 
+> **M6 현재 상태:** 사진 놓기 API(`POST/GET/PATCH/DELETE /me/comparisons`)와 개인 사진 API(`POST/GET/DELETE /me/photos`, `GET /me/photos/{recordId}/file`)가 구현됐다. 최신 명세는 [10-m6-photo-record.md](10-m6-photo-record.md)를 기준으로 한다.
+
 > 프론트(React)↔백(Spring Boot) 계약. 실제 외부 API 응답(06)을 **내부 DTO로 변환**한 형태로 제공한다.
 > 외부 필드명(galWebImageUrl, koTitle…)은 절대 노출하지 않는다 → 외부 API가 바뀌어도 이 계약은 유지(확장성).
 > 이 문서의 응답 shape는 나중에 **QA 에이전트가 프론트 훅과 교차검증**하는 기준이 된다.

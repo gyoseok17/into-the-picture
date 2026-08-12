@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import axios from 'axios'
 
 import { API_BASE } from '@/lib/env'
-import { clearLegacyRefreshToken, hasSessionHint, setAccessToken } from '@/lib/tokenStore'
+import { clearLegacyRefreshToken, clearSessionHint, hasSessionHint, setAccessToken } from '@/lib/tokenStore'
 import { subscribeToAuthExpired } from '@/lib/authSessionEvents'
 import type { AuthResponse, AuthUser } from '@/lib/apiClient'
 import { loginWithKakao, logout as logoutRequest } from './api'
@@ -34,6 +34,7 @@ function requestBootstrapSession(): Promise<AuthResponse | null> {
       const { data } = await axios.post<AuthResponse>(`${API_BASE}/auth/refresh`, undefined, { withCredentials: true })
       return data
     } catch {
+      clearSessionHint()
       return null
     }
   })()

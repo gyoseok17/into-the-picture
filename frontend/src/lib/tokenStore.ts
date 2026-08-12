@@ -26,3 +26,8 @@ export async function clearLegacyRefreshToken(): Promise<void> {
 export function hasSessionHint(): boolean {
   return typeof document !== 'undefined' && document.cookie.split('; ').includes('itp_session=1')
 }
+
+/** refresh가 거절되면 다음 페이지 진입에서 불필요한 재시도를 막는다. */
+export function clearSessionHint(): void {
+  if (typeof document !== 'undefined') document.cookie = 'itp_session=; Path=/; Max-Age=0; SameSite=Lax'
+}

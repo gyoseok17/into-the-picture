@@ -1,3 +1,6 @@
+import { useEffect, useState } from 'react'
+
+import { apiClient } from '@/lib/apiClient'
 import { cn } from '@/lib/utils'
 
 interface AspectImageProps {
@@ -19,16 +22,26 @@ export function AspectImage({
 }: AspectImageProps) {
   return (
     <div className={cn('overflow-hidden bg-muted', ratioClassName, className)}>
-      <img
-        src={src}
-        alt={alt}
-        loading="lazy"
-        decoding="async"
-        className={cn(
-          'h-full w-full',
-          fit === 'cover' ? 'object-cover' : 'object-contain',
-        )}
-      />
+      <ImageSource src={src} alt={alt} className={cn('h-full w-full', fit === 'cover' ? 'object-cover' : 'object-contain')} />
     </div>
   )
+}
+
+export function ImageSource({ src, alt, className }: { src: string; alt: string; className?: string }) {
+  const isPrivatePhoto = src.startsWith('/me/photos/')
+  const [objectUrl, setObjectUrl] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!isPrivatePhoto) { setObjectUrl(null); return }
+    let active = true
+    let url: string | null = null
+    void apiClient.get<Blob>(src, { responseType: 'blob' }).then((response) => {
+      url = URL.createObjectURL(response.data)
+      if (active) setObjectUrl(url)
+      else URL.revokeObjectURL(url)
+    }).catch(() => { if (active) setObjectUrl(null) })
+    return () => { active = false; if (url) URL.revokeObjectURL(url) }
+  }, [isPrivatePhoto, src])
+
+  return <img src={isPrivatePhoto ? objectUrl ?? undefined : src} alt={alt} loading="lazy" decoding="async" className={className} />
 }

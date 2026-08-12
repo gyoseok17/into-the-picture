@@ -52,6 +52,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/auth/kakao", "/api/v1/auth/refresh").permitAll()
                 .requestMatchers("/api/v1/auth/logout").authenticated()
                 .requestMatchers("/api/v1/users/me", "/api/v1/me/**").authenticated()
+                .requestMatchers("/files/**").denyAll()
                 .anyRequest().permitAll());
         JwtAuthenticationFilter filter = jwtAuthenticationFilter.getIfAvailable();
         if (filter != null) {

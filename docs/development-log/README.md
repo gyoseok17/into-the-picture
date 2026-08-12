@@ -20,3 +20,4 @@
 | M3.1 | 완료 | [M3.1-contest-location-corrections.md](M3.1-contest-location-corrections.md) |
 | M4 | 완료 | [M4-crowd-discovery.md](M4-crowd-discovery.md) |
 | M5 | 완료 | [M5-favorites.md](M5-favorites.md) |
+| M6 | 완료 | [M6-photo-compare.md](M6-photo-compare.md) |

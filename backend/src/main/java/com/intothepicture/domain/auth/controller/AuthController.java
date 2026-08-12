@@ -35,8 +35,13 @@ public class AuthController {
 
     @PostMapping("/refresh")
     public ResponseEntity<SessionResponse> refresh(@CookieValue(name = REFRESH_COOKIE, required = false) String refreshToken) {
-        if (refreshToken == null || refreshToken.isBlank()) throw new BusinessException(ErrorCode.UNAUTHORIZED);
-        return sessionResponse(authService.refresh(refreshToken));
+        if (refreshToken == null || refreshToken.isBlank()) return expiredRefreshResponse();
+        try {
+            return sessionResponse(authService.refresh(refreshToken));
+        } catch (BusinessException e) {
+            if (e.getErrorCode() == ErrorCode.UNAUTHORIZED) return expiredRefreshResponse();
+            throw e;
+        }
     }
 
     @PostMapping("/logout")
@@ -73,5 +78,10 @@ public class AuthController {
     private ResponseCookie expiredSessionHintCookie() {
         return ResponseCookie.from(SESSION_HINT_COOKIE, "").secure(refreshCookieSecure)
             .sameSite("Lax").path("/").maxAge(0).build();
+    }
+
+    private ResponseEntity<SessionResponse> expiredRefreshResponse() {
+        return ResponseEntity.status(401).header(HttpHeaders.SET_COOKIE, expiredRefreshCookie().toString())
+            .header(HttpHeaders.SET_COOKIE, expiredSessionHintCookie().toString()).build();
     }
 }
