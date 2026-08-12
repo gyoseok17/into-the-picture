@@ -5,14 +5,16 @@ description: "Into the Picture 앱 구현을 에이전트 팀(backend-engineer·
 
 # Into the Picture Build Orchestrator
 
-## Development progress-log protocol
+> 역할 선택, 병렬 실행, 계약·QA·커밋 게이트의 최종 기준은 저장소 루트 `AGENTS.md`다. 이 문서의 Claude Code 전용 도구 설명은 그 기준을 구현하는 방법일 뿐, 역할 기반 병렬 규칙을 대체하지 않는다.
 
-The lead owns `docs/development-log/`. At the start of every implementation task, the lead selects the milestone file (or creates `M<version>-<topic>.md`) and marks it in progress. The lead reads the index before planning and updates it when a new milestone file is created.
+## 개발 진행 기록 규약
 
-- Every agent reports its implemented scope, design decisions and reasons, verification result, and notable constraints to the lead when it completes a task.
-- Agents write detailed contracts, API shapes, and QA evidence in `_workspace/` as usual. They do not edit the shared milestone log unless the lead explicitly assigns that task.
-- Before a commit, the lead consolidates agent reports into the milestone file. After the commit, the lead records the commit hash and date and changes its state to complete.
-- Logs must not contain secret values, tokens, or personal data.
+리드는 `docs/development-log/`을 관리한다. 구현 작업 시작 시 `M<버전>-<주제>.md` 파일을 만들고 진행 상태를 기록한다. 기록 방식은 루트 `AGENTS.md`와 `docs/development-log/_template.md`가 최종 기준이다.
+
+- 계획·결정·구현 변경·역할 인수인계·QA·커밋은 마일스톤 파일의 목적별 섹션에 날짜·번호를 붙여 누적한다. 기존 기록을 덮어쓰지 않는다.
+- 각 에이전트는 완료 시 변경 범위, 설계 결정과 이유, 검증, 해결·미해결 위험을 리드에게 보고한다. 상세 계약·API·QA 근거는 `_workspace/`에 남긴다.
+- 커밋 전 리드는 역할 보고와 QA 판정을 기록하고 문서를 대조한다. 커밋 후 해시·날짜는 커밋 섹션의 새 항목으로 남기고 상태를 완료로 바꾼다.
+- 기록에는 시크릿, 토큰, 개인 정보를 넣지 않는다.
 
 Into the Picture 에이전트 팀을 조율해 설계(`docs/`)를 실제 코드(`backend/` + `frontend/`)로 구현하는 통합 스킬.
 
@@ -43,13 +45,14 @@ Into the Picture 에이전트 팀을 조율해 설계(`docs/`)를 실제 코드(
    - 존재 + **새 입력/대규모 변경** → 기존 `_workspace/`를 `_workspace_{타임스탬프}/`로 이동 후 새로 진행.
 
 ### Phase 1: 준비
-1. `docs/` 설계를 로드(00~09). 단일 진실.
+1. `docs/` 설계를 로드(00~10). 단일 진실.
 2. `_workspace/` 생성. `design-process/data/sigungu-codes.json`(코드표), `.env`(키) 위치 확인.
 3. 빌드 범위 결정 — 전체 또는 사용자가 지정한 도메인(인증/검색/공모전/집중률/지도/비교).
 
 ### Phase 2: 팀 구성
-1. 리드(메인 세션)가 **`Agent` 도구로 팀원 4명을 스폰**한다 — 각 `subagent_type`=에이전트 이름(backend-engineer / external-integration-engineer / frontend-engineer / qa-integration), `model:"opus"`, `run_in_background:true`. 플래그가 켜져 있어 이들은 서로 `SendMessage`로 통신하는 **팀원**이 된다. (별도 TeamCreate 단계 없음)
-2. `TaskCreate`로 작업 등록(의존성 `depends_on` 명시). 팀원당 4~6개. 팀원은 공유 목록에서 self-claim 하거나 리드가 배정.
+1. `AGENTS.md`의 범위 매트릭스로 필요한 역할을 먼저 고른다. backend·frontend·QA는 교차 도메인 기능의 기본 구성이고, external은 외부 경계 변경 때만 추가한다.
+2. 리드(메인 세션)가 선택된 역할을 **`Agent` 도구로 동시에 스폰**한다 — 각 `subagent_type`=에이전트 이름(backend-engineer / external-integration-engineer / frontend-engineer / qa-integration), `model:"opus"`, `run_in_background:true`. 플래그가 켜져 있어 이들은 서로 `SendMessage`로 통신하는 팀원이 된다.
+3. `TaskCreate`로 작업 등록(의존성 `depends_on` 명시). QA는 구현 완료를 기다리지 않고 계약·회귀 점검을 즉시 시작한다.
 
 ### Phase 3: 빌드 (파이프라인 + 팬아웃)
 **3-1. 계약 합의 (먼저):**
