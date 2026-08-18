@@ -1,5 +1,5 @@
-import { useState, type ReactNode } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { ChevronLeft, Heart } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
@@ -22,6 +22,8 @@ import { FavoriteSaveErrorNotice } from '@/features/favorite/components/Favorite
 // 핵심 플로우(docs/04): 수상작 클릭 → 상세 + 좌표(지도/길안내) + 집중률 캘린더.
 export default function ContestDetailPage() {
   const params = useParams()
+  const location = useLocation()
+  const navigate = useNavigate()
   const id = Number(params.id)
   const isValidId = Number.isInteger(id) && id > 0
 
@@ -31,6 +33,16 @@ export default function ContestDetailPage() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false)
   const favoriteStatus = useContestFavoriteStatus(id, Boolean(user && isValidId))
   const toggleFavorite = useToggleContestFavorite(id)
+  const openedFromContestList = location.state?.contestListEntry === true
+
+  const handleListReturn = useCallback((): void => {
+    if (openedFromContestList) {
+      navigate(-1)
+      return
+    }
+
+    navigate('/contests')
+  }, [navigate, openedFromContestList])
 
   // crowdAvailable=true일 때만 호출(enabled). 204면 data=null → 섹션 숨김.
   const crowdQuery = useContestCrowd(id, detail?.crowdAvailable ?? false)
@@ -44,13 +56,15 @@ export default function ContestDetailPage() {
   }
 
   return (
+    <DetailPresentation overlay={openedFromContestList} onClose={handleListReturn}>
     <article className="space-y-5">
-      <Link
-        to="/contests"
+      <button
+        type="button"
+        onClick={handleListReturn}
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
       >
         <ChevronLeft className="h-4 w-4" /> 수상작 목록
-      </Link>
+      </button>
 
       {!isValidId ? (
         <ErrorState error={{ code: 'BAD_REQUEST', message: '잘못된 주소예요.' }} />
@@ -128,6 +142,79 @@ export default function ContestDetailPage() {
       <LoginRequiredDialog open={showLoginPrompt} returnTo={`/contests/${id}`} onClose={() => setShowLoginPrompt(false)} />
       <FavoriteSaveErrorNotice open={toggleFavorite.isError} onClose={() => toggleFavorite.reset()} />
     </article>
+    </DetailPresentation>
+  )
+}
+
+function DetailPresentation({
+  overlay,
+  onClose,
+  children,
+}: {
+  overlay: boolean
+  onClose: () => void
+  children: ReactNode
+}) {
+  const returnFocusRef = useRef<HTMLElement | null>(null)
+  const dialogRef = useRef<HTMLDivElement | null>(null)
+
+  useEffect(() => {
+    if (!overlay) return
+
+    returnFocusRef.current = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    dialogRef.current?.focus()
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        onClose()
+        return
+      }
+      if (event.key !== 'Tab' || !dialogRef.current) return
+
+      const focusable = Array.from(dialogRef.current.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      )).filter((element) => !element.hasAttribute('hidden'))
+      if (focusable.length === 0) {
+        event.preventDefault()
+        dialogRef.current.focus()
+        return
+      }
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      if (event.shiftKey && (document.activeElement === first || document.activeElement === dialogRef.current)) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', handleKeyDown)
+      const returnFocusTarget = returnFocusRef.current
+      window.requestAnimationFrame(() => returnFocusTarget?.focus())
+    }
+  }, [onClose, overlay])
+
+  if (!overlay) return <>{children}</>
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="수상작 상세"
+      className="fixed inset-x-0 top-0 bottom-[4.5rem] z-30 overflow-y-auto overscroll-contain bg-background md:top-[4.25rem] md:bottom-0"
+    >
+      <div ref={dialogRef} tabIndex={-1} className="mx-auto w-full max-w-screen-xl px-4 pb-8 pt-6 outline-none md:px-8 md:pb-14 md:pt-9">
+        {children}
+      </div>
+    </div>
   )
 }
 

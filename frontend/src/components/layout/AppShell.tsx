@@ -9,7 +9,7 @@ export function AppShell() {
   return (
     <div className="flex min-h-dvh flex-col bg-background">
       <TopNav />
-      <main className="mx-auto w-full max-w-screen-xl flex-1 px-4 pb-24 pt-4 md:px-6 md:pb-10">
+      <main className="mx-auto w-full max-w-screen-xl flex-1 px-4 pb-24 pt-6 md:px-8 md:pb-14 md:pt-9">
         <Outlet />
       </main>
       <BottomTabBar />

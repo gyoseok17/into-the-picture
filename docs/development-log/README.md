@@ -23,3 +23,4 @@
 | M5 | 완료 | [M5-favorites.md](M5-favorites.md) |
 | M6 | 완료 | [M6-photo-compare.md](M6-photo-compare.md) |
 | M7 | 완료 | [M7-harness-governance.md](M7-harness-governance.md) |
+| M8 | 진행 중 | [M8-photo-album-experience.md](M8-photo-album-experience.md) |

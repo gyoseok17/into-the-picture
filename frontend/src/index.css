@@ -4,26 +4,26 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --background: 153 32% 96%;
+    --foreground: 166 23% 19%;
+    --card: 150 30% 99%;
+    --card-foreground: 166 23% 19%;
+    --popover: 150 30% 99%;
+    --popover-foreground: 166 23% 19%;
+    --primary: 165 28% 29%;
+    --primary-foreground: 150 31% 98%;
+    --secondary: 154 29% 93%;
+    --secondary-foreground: 166 23% 19%;
+    --muted: 154 29% 93%;
+    --muted-foreground: 165 11% 40%;
+    --accent: 154 29% 91%;
+    --accent-foreground: 166 23% 19%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --radius: 0.6rem;
+    --border: 158 18% 84%;
+    --input: 158 18% 84%;
+    --ring: 165 28% 29%;
+    --radius: 0.85rem;
   }
 
   .dark {
@@ -49,13 +49,29 @@
   }
 }
 
+@layer utilities {
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 @layer base {
   * {
     @apply border-border;
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: 'ss01' on, 'cv01' on;
     /* 앱(노치/홈 인디케이터) safe-area 대응 */
     -webkit-tap-highlight-color: transparent;
+  }
+
+  .font-editorial {
+    font-family: Georgia, 'Times New Roman', serif;
   }
 }

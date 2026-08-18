@@ -8,10 +8,13 @@ import { cn } from '@/lib/utils'
 import { useContests } from '../hooks/useContests'
 import { useContestMap } from '../hooks/useContestMap'
 import { useContestFilters } from '../hooks/useContestFilters'
-import { ContestFilterBar } from '../components/ContestFilterBar'
+import { ContestFilterBar, ContestQuickFilterPanel } from '../components/ContestFilterBar'
 import { ContestGrid } from '../components/ContestGrid'
 import { ContestCard, ContestCardSkeleton } from '../components/ContestCard'
 import { ContestMapView } from '../components/ContestMapView'
+import { MobileGridToggle } from '@/features/display-preferences/components/MobileGridToggle'
+import { useMobileGridColumns } from '@/features/display-preferences/hooks/useMobileGridColumns'
+import { ScrollAssist } from '@/components/navigation/ScrollAssist'
 import type { ContestQuery, FilterOptions } from '../types'
 
 // 필터 옵션 로드 실패 시 graceful 강등(키워드 검색만 동작).
@@ -28,6 +31,8 @@ export default function ContestListPage() {
   const [query, setQuery] = useState<ContestQuery>({})
   // 리스트/지도 두 뷰는 같은 필터 상태(query)를 공유한다.
   const [view, setView] = useState<ViewMode>('list')
+  const [mobileColumns, setMobileColumns] = useMobileGridColumns()
+  const filterInputRef = useRef<HTMLInputElement>(null)
 
   const filtersQuery = useContestFilters()
   const filterOptions =
@@ -49,10 +54,17 @@ export default function ContestListPage() {
         value={query}
         options={filterOptions}
         onChange={setQuery}
+        searchInputRef={filterInputRef}
       />
 
       {view === 'list' ? (
-        <ListView query={query} />
+        <ListView
+          query={query}
+          filterOptions={filterOptions}
+          onQueryChange={setQuery}
+          mobileColumns={mobileColumns}
+          onMobileColumnsChange={setMobileColumns}
+        />
       ) : (
         <MapView query={query} />
       )}
@@ -106,8 +118,20 @@ function ToggleButton({
   )
 }
 
-// 리스트 뷰: 무한스크롤 그리드(기존 동작 그대로).
-function ListView({ query }: { query: ContestQuery }) {
+// 리스트 뷰: 무한스크롤 그리드.
+function ListView({
+  query,
+  filterOptions,
+  onQueryChange,
+  mobileColumns,
+  onMobileColumnsChange,
+}: {
+  query: ContestQuery
+  filterOptions?: FilterOptions
+  onQueryChange: (next: ContestQuery) => void
+  mobileColumns: 1 | 2 | 3
+  onMobileColumnsChange: (columns: 1 | 2 | 3) => void
+}) {
   const {
     data,
     isPending,
@@ -144,11 +168,16 @@ function ListView({ query }: { query: ContestQuery }) {
 
   if (isPending) {
     return (
-      <ContestGrid>
-        {Array.from({ length: 8 }).map((_, index) => (
-          <ContestCardSkeleton key={index} />
-        ))}
-      </ContestGrid>
+      <>
+        <div className="mb-3 flex justify-end">
+          <MobileGridToggle value={mobileColumns} onChange={onMobileColumnsChange} />
+        </div>
+        <ContestGrid mobileColumns={mobileColumns}>
+          {Array.from({ length: 8 }).map((_, index) => (
+            <ContestCardSkeleton key={index} />
+          ))}
+        </ContestGrid>
+      </>
     )
   }
 
@@ -167,7 +196,10 @@ function ListView({ query }: { query: ContestQuery }) {
 
   return (
     <>
-      <ContestGrid>
+      <div className="mb-3 flex justify-end">
+        <MobileGridToggle value={mobileColumns} onChange={onMobileColumnsChange} />
+      </div>
+      <ContestGrid mobileColumns={mobileColumns}>
         {contests.map((contest) => (
           <ContestCard key={contest.id} contest={contest} />
         ))}
@@ -178,6 +210,11 @@ function ListView({ query }: { query: ContestQuery }) {
         <div className="flex justify-center py-4 text-muted-foreground">
           <Loader2 className="h-5 w-5 animate-spin" />
         </div>
+      ) : null}
+      {filterOptions ? (
+        <ScrollAssist action="filters">
+          {(close) => <ContestQuickFilterPanel value={query} options={filterOptions} onApply={(next) => { onQueryChange(next); close() }} />}
+        </ScrollAssist>
       ) : null}
     </>
   )

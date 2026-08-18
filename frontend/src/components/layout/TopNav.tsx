@@ -26,9 +26,9 @@ export function TopNav() {
   }
 
   return (
-    <header className="sticky top-0 z-40 hidden border-b bg-background/95 backdrop-blur md:block">
-      <div className="mx-auto flex h-14 w-full max-w-screen-xl items-center gap-6 px-6">
-        <Link to="/" className="text-base font-semibold tracking-tight">
+    <header className="sticky top-0 z-40 hidden border-b border-border/70 bg-background/90 backdrop-blur-md md:block">
+      <div className="mx-auto flex h-[4.25rem] w-full max-w-screen-xl items-center gap-8 px-8">
+        <Link to="/" className="font-editorial text-lg font-semibold tracking-[-0.04em]">
           Into the Picture
         </Link>
         <nav className="flex items-center gap-1" aria-label="주요 메뉴">
@@ -39,10 +39,10 @@ export function TopNav() {
               end={end}
               className={({ isActive }) =>
                 cn(
-                  'flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
+                  'flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
                   isActive
-                    ? 'bg-secondary text-secondary-foreground'
-                    : 'text-muted-foreground hover:bg-accent hover:text-foreground',
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
                 )
               }
             >

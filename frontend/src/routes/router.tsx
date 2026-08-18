@@ -1,13 +1,14 @@
 import { createBrowserRouter } from 'react-router-dom'
 
 import { AppShell } from '@/components/layout/AppShell'
+import HomePage from '@/pages/HomePage'
 import ExplorePage from '@/pages/ExplorePage'
 import CrowdPage from '@/pages/CrowdPage'
 import ComparePage from '@/pages/ComparePage'
 import MyPage from '@/pages/MyPage'
 import LoginPage from '@/pages/LoginPage'
 import NotFoundPage from '@/pages/NotFoundPage'
-import ContestListPage from '@/features/contest/pages/ContestListPage'
+import ContestRoute from '@/features/contest/pages/ContestRoute'
 import ContestDetailPage from '@/features/contest/pages/ContestDetailPage'
 import { RequireAuth } from '@/features/auth/RequireAuth'
 
@@ -16,9 +17,16 @@ export const router = createBrowserRouter([
   {
     element: <AppShell />,
     children: [
-      { path: '/', element: <ExplorePage /> },
-      { path: '/contests', element: <ContestListPage /> },
-      { path: '/contests/:id', element: <ContestDetailPage /> },
+      { path: '/', element: <HomePage /> },
+      { path: '/explore', element: <ExplorePage /> },
+      {
+        path: '/contests',
+        element: <ContestRoute />,
+        children: [
+          { index: true, element: null },
+          { path: ':id', element: <ContestDetailPage /> },
+        ],
+      },
       { path: '/crowd', element: <CrowdPage /> },
       { path: '/login', element: <LoginPage /> },
       {
