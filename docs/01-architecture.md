@@ -52,7 +52,7 @@
 
 ### 인프라/운영 (개발 단계)
 - 이미지 저장: 개발은 로컬 디스크, 운영은 오브젝트 스토리지(S3 호환) — 07 참고
-- 시크릿: `.env` / `application-local.yml` (git 제외)
+- 시크릿: `backend/.env` (git 제외), 참조 설정: `backend/src/main/resources/application.yml`
 
 ## 리포지토리 구조 (예정)
 

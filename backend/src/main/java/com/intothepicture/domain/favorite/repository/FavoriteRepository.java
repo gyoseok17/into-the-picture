@@ -10,6 +10,8 @@ public interface FavoriteRepository extends JpaRepository<Favorite, Long> {
 
     Optional<Favorite> findByUserIdAndTargetTypeAndExternalId(Long userId, FavoriteTargetType targetType, String externalId);
 
+    boolean existsByUserIdAndTargetTypeAndExternalId(Long userId, FavoriteTargetType targetType, String externalId);
+
     List<Favorite> findAllByUserIdAndTargetTypeOrderByCreatedAtDesc(Long userId, FavoriteTargetType targetType);
 
     void deleteByUserIdAndTargetTypeAndExternalId(Long userId, FavoriteTargetType targetType, String externalId);

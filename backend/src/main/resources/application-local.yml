@@ -1,8 +1,0 @@
-spring:
-  datasource:
-    # Supabase(PostgreSQL). 기본 DB명 postgres, 포트 5432. sslmode 는 Supabase 요구 시에만.
-    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:postgres}
-    username: ${DB_USERNAME:}
-    # 실제 비밀번호는 커밋 금지 — .env 의 DB_PASSWORD 로 주입.
-    password: ${DB_PASSWORD:}
-    driver-class-name: org.postgresql.Driver

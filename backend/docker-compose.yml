@@ -1,23 +1,45 @@
 services:
-  mysql:
-    image: mysql:8.0
-    container_name: itp-mysql
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE: /api/v1
+        # This is a public browser key, not a server-side secret.
+        VITE_KAKAO_JS_KEY: ${VITE_KAKAO_JS_KEY:?Set VITE_KAKAO_JS_KEY in backend/.env}
     environment:
-      MYSQL_DATABASE: into_the_picture
-      MYSQL_USER: itp
-      MYSQL_PASSWORD: itp1234
-      MYSQL_ROOT_PASSWORD: root1234
-      TZ: Asia/Seoul
-    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+      APP_DOMAIN: ${APP_DOMAIN:?Set APP_DOMAIN in backend/.env}
+    depends_on:
+      backend:
+        condition: service_started
     ports:
-      - "3306:3306"
+      - "80:80"
+      - "443:443"
     volumes:
-      - itp-mysql-data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot1234"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      # The current LocalFileStorage implementation must keep its files outside
+      # the image layer. S3/Supabase Storage is deliberately a later change.
+      APP_STORAGE_LOCAL_DIR: /app/uploads
+      # This Compose file is an HTTPS deployment path. Do not allow a value
+      # from .env to accidentally issue the refresh cookie without Secure.
+      APP_AUTH_REFRESH_COOKIE_SECURE: "true"
+    expose:
+      - "8080"
+    volumes:
+      - itp-uploads:/app/uploads
+    restart: unless-stopped
 
 volumes:
-  itp-mysql-data:
+  itp-uploads:
+  caddy_data:
+  caddy_config:

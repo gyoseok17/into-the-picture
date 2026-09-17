@@ -1,23 +1,37 @@
 # Into the Picture — Backend
 
-Spring Boot 3.3 / Java 17+ / MySQL 8 / Flyway. 패키지 루트 `com.intothepicture`.
+Spring Boot 3.3 / Java 17+ / PostgreSQL(Supabase) / Flyway. 패키지 루트 `com.intothepicture`.
 
 ## 실행 (로컬)
 
 ```bash
-# 1) MySQL 8 기동 (docker)
-docker compose up -d
+# 1) backend/.env를 만들고 Supabase 연결값과 시크릿을 채운다.
+#    예: Copy-Item .env.example .env
 
-# 2) 애플리케이션 실행 (local 프로파일 기본)
+# 2) 기존 로컬 실행
 ./gradlew bootRun
 ```
 
 - API Base URL: `http://localhost:8080/api/v1`
 - 스키마는 Flyway(`src/main/resources/db/migration`)가 생성. `ddl-auto=none`(Flyway 가 단일 진실).
-- DB 접속/포트 등은 환경변수로 override: `DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD`.
-- 외부 API 키는 `.env`(저장소 루트, git 제외) — `DATA_GO_KR_KEY`, `KAKAO_REST_KEY`, `KAKAO_CLIENT_SECRET`(카카오 콘솔에서 Client Secret 사용 시). (external 모듈이 사용)
-- 인증 실행에는 `JWT_SECRET` 환경변수가 필요하다. 최소 32바이트 raw UTF-8 비밀값을 `.env` 또는 실행 환경의 시크릿에 설정하며, 저장소에는 커밋하지 않는다.
+- 백엔드는 단일 `application.yml`에서 `backend/.env`(gitignore 대상)를 읽는다. `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`, `JWT_SECRET`을 채운 뒤 실행한다. 처음에는 `backend/.env.example`을 복사해 실제 값을 채운다. YAML에는 DB·JWT 기본값을 두지 않는다.
+- 외부 API 키는 `backend/.env`(git 제외) — `DATA_GO_KR_KEY`, `KAKAO_REST_KEY`, `KAKAO_CLIENT_SECRET`(카카오 콘솔에서 Client Secret 사용 시). (external 모듈이 사용)
+- `backend/.env`는 Java properties 형식의 `KEY=value`로 작성한다. `JWT_SECRET`은 raw UTF-8 기준 최소 32바이트여야 하며, `backend/.env`와 운영 시크릿은 저장소에 커밋하지 않는다.
 - HTTPS 운영 환경에서는 `APP_AUTH_REFRESH_COOKIE_SECURE=true`를 설정한다. refresh 토큰은 HttpOnly 쿠키로만 전달되며 JSON 응답에 포함되지 않는다.
+
+## Docker 배포 실행 (단일 HTTPS 도메인 + 외부 Supabase DB)
+
+```bash
+# backend/.env를 만든 뒤, APP_DOMAIN과 VITE_KAKAO_JS_KEY를 포함한 값을 채운다.
+# DB·JWT·서버 API 시크릿도 같은 파일에만 둔다.
+docker compose up --build
+```
+
+- Compose는 `frontend`(Caddy)만 외부 `80`/`443`을 열며, `APP_DOMAIN`으로 HTTPS 인증서를 관리한다. `/api/*` 요청은 Compose 내부 네트워크의 `backend:8080`으로 전달된다. 백엔드 `8080`은 호스트에 공개하지 않는다.
+- `backend/.env`는 **backend 서비스에만** `env_file`로 주입한다. DB·JWT·관광공사·카카오 REST 시크릿은 프런트 이미지나 Caddy 컨테이너로 전달하지 않는다. `VITE_KAKAO_JS_KEY`만 공개 브라우저 키이므로 프런트 빌드 인자로 사용한다.
+- Compose는 `APP_AUTH_REFRESH_COOKIE_SECURE=true`를 강제한다. HTTPS 도메인에서만 refresh HttpOnly 쿠키가 전송되게 하므로 운영에서 false로 바꾸지 않는다. 로컬 HTTP Gradle 실행은 기존 기본값(false)을 유지한다.
+- 업로드는 Docker named volume `itp-uploads`의 `/app/uploads`에, Caddy TLS 인증서·상태는 `caddy_data`와 `caddy_config`에 보존된다. 업로드는 컨테이너 재생성에는 유지되지만 서버/볼륨 손실·다중 서버에는 안전하지 않다. S3 호환 스토리지 전환 전까지 단일 서버에서만 사용한다.
+- 중지: `docker compose down` (업로드를 지우려면 사용자가 명시적으로 `docker compose down -v`를 실행해야 한다.)
 
 ## 빌드 / 테스트
 

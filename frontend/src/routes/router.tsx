@@ -6,6 +6,8 @@ import ExplorePage from '@/pages/ExplorePage'
 import CrowdPage from '@/pages/CrowdPage'
 import ComparePage from '@/pages/ComparePage'
 import MyPage from '@/pages/MyPage'
+import AlbumPage from '@/pages/AlbumPage'
+import ComparisonManagementPage from '@/features/comparison/pages/ComparisonManagementPage'
 import LoginPage from '@/pages/LoginPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 import ContestRoute from '@/features/contest/pages/ContestRoute'
@@ -36,6 +38,8 @@ export const router = createBrowserRouter([
           { path: '/me', element: <MyPage /> },
           { path: '/me/favorites', element: <MyPage /> },
           { path: '/me/photos', element: <MyPage /> },
+          { path: '/me/album', element: <AlbumPage /> },
+          { path: '/me/comparisons', element: <ComparisonManagementPage /> },
         ],
       },
       { path: '*', element: <NotFoundPage /> },

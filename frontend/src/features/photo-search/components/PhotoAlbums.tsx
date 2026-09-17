@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Images, X } from 'lucide-react'
 
 import { AspectImage } from '@/components/AspectImage'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { useDocumentScrollLock } from '@/hooks/useDocumentScrollLock'
 import type { MobileGridColumns } from '@/features/display-preferences/hooks/useMobileGridColumns'
 import { mobileGridClassName } from '@/features/display-preferences/mobileGridClassName'
 import type { Photo } from '../types'
@@ -49,16 +50,29 @@ export function PhotoAlbumGrid({
 
   return (
     <>
-      <div className={mobileGridClassName(mobileColumns, 'grid gap-3 sm:grid-cols-2 lg:grid-cols-3')}>
+      <div
+        className={mobileGridClassName(
+          mobileColumns,
+          'grid gap-3 sm:grid-cols-2 lg:grid-cols-3',
+        )}
+      >
         {albums.map((album) => (
-          <button key={album.key} type="button" onClick={() => setSelected(album)} className="text-left">
+          <button
+            key={album.key}
+            type="button"
+            onClick={() => setSelected(album)}
+            className="text-left"
+          >
             <Card className="h-full overflow-hidden transition-shadow hover:shadow-md">
               <AspectImage src={album.cover.imageUrl ?? ''} alt={album.title} />
               <div className="space-y-1 p-3">
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Images className="h-3.5 w-3.5" />사진 {album.photos.length}장
+                  <Images className="h-3.5 w-3.5" />
+                  사진 {album.photos.length}장
                 </div>
-                <h3 className="line-clamp-1 text-sm font-semibold">{album.title}</h3>
+                <h3 className="line-clamp-1 text-sm font-semibold">
+                  {album.title}
+                </h3>
                 <p className="line-clamp-1 text-xs text-muted-foreground">
                   {album.location ?? '촬영지 정보 없음'}
                 </p>
@@ -71,10 +85,14 @@ export function PhotoAlbumGrid({
         <PhotoAlbumDetail
           album={selected}
           onClose={() => setSelected(null)}
-          onSearch={onSearch ? (keyword) => {
-            onSearch(keyword)
-            setSelected(null)
-          } : undefined}
+          onSearch={
+            onSearch
+              ? (keyword) => {
+                  onSearch(keyword)
+                  setSelected(null)
+                }
+              : undefined
+          }
         />
       ) : null}
     </>
@@ -92,7 +110,7 @@ function PhotoAlbumDetail({
 }) {
   const keywords = [...new Set(album.photos.flatMap((photo) => photo.keywords))]
   const multiplePhotos = album.photos.length > 1
-  useLockDocumentScroll()
+  useDocumentScrollLock()
 
   return (
     <div
@@ -106,14 +124,22 @@ function PhotoAlbumDetail({
         onClick={(event) => event.stopPropagation()}
       >
         <AlbumDetailHeader album={album} onClose={onClose} />
-        {keywords.length > 0 ? <AlbumKeywords keywords={keywords} onSearch={onSearch} /> : null}
+        {keywords.length > 0 ? (
+          <AlbumKeywords keywords={keywords} onSearch={onSearch} />
+        ) : null}
         <AlbumPhotoList photos={album.photos} multiplePhotos={multiplePhotos} />
       </Card>
     </div>
   )
 }
 
-function AlbumDetailHeader({ album, onClose }: { album: PhotoAlbum; onClose: () => void }) {
+function AlbumDetailHeader({
+  album,
+  onClose,
+}: {
+  album: PhotoAlbum
+  onClose: () => void
+}) {
   return (
     <div className="flex items-center justify-between p-4">
       <div>
@@ -129,12 +155,18 @@ function AlbumDetailHeader({ album, onClose }: { album: PhotoAlbum; onClose: () 
   )
 }
 
-function AlbumKeywords({ keywords, onSearch }: { keywords: string[]; onSearch?: (keyword: string) => void }) {
+function AlbumKeywords({
+  keywords,
+  onSearch,
+}: {
+  keywords: string[]
+  onSearch?: (keyword: string) => void
+}) {
   return (
     <div className="space-y-2 px-4 pb-4">
       <p className="text-sm font-medium">관련 키워드</p>
       <div className="flex flex-wrap gap-1.5">
-        {keywords.map((keyword) => (
+        {keywords.map((keyword) =>
           onSearch ? (
             <button
               key={keyword}
@@ -145,57 +177,44 @@ function AlbumKeywords({ keywords, onSearch }: { keywords: string[]; onSearch?: 
               {keyword}
             </button>
           ) : (
-            <span key={keyword} className="rounded-full bg-muted px-2.5 py-1 text-xs">
+            <span
+              key={keyword}
+              className="rounded-full bg-muted px-2.5 py-1 text-xs"
+            >
               {keyword}
             </span>
-          )
-        ))}
+          ),
+        )}
       </div>
     </div>
   )
 }
 
-function AlbumPhotoList({ photos, multiplePhotos }: { photos: Photo[]; multiplePhotos: boolean }) {
+function AlbumPhotoList({
+  photos,
+  multiplePhotos,
+}: {
+  photos: Photo[]
+  multiplePhotos: boolean
+}) {
   return (
-    <div className={`grid grid-cols-1 gap-3 p-4 pt-0 ${multiplePhotos ? 'sm:grid-cols-2' : ''}`}>
+    <div
+      className={`grid grid-cols-1 gap-3 p-4 pt-0 ${multiplePhotos ? 'sm:grid-cols-2' : ''}`}
+    >
       {photos.map((photo) => (
-        <div key={photo.id} className={multiplePhotos ? 'space-y-2' : 'mx-auto w-full max-w-xl space-y-2'}>
+        <div
+          key={photo.id}
+          className={
+            multiplePhotos ? 'space-y-2' : 'mx-auto w-full max-w-xl space-y-2'
+          }
+        >
           <AspectImage src={photo.imageUrl ?? ''} alt={photo.title} />
           <p className="text-xs text-muted-foreground">
-            {photo.photographer ?? '촬영자 정보 없음'} · {photo.filmMonth ?? '촬영월 정보 없음'}
+            {photo.photographer ?? '촬영자 정보 없음'} ·{' '}
+            {photo.filmMonth ?? '촬영월 정보 없음'}
           </p>
         </div>
       ))}
     </div>
   )
-}
-
-function useLockDocumentScroll() {
-  useEffect(() => {
-    const scrollY = window.scrollY
-    const bodyStyle = document.body.style
-    const documentStyle = document.documentElement.style
-    const previousBody = {
-      position: bodyStyle.position,
-      top: bodyStyle.top,
-      width: bodyStyle.width,
-      overflow: bodyStyle.overflow,
-    }
-    const previousDocumentOverflow = documentStyle.overflow
-
-    bodyStyle.position = 'fixed'
-    bodyStyle.top = `-${scrollY}px`
-    bodyStyle.width = '100%'
-    bodyStyle.overflow = 'hidden'
-    documentStyle.overflow = 'hidden'
-
-    return () => {
-      bodyStyle.position = previousBody.position
-      bodyStyle.top = previousBody.top
-      bodyStyle.width = previousBody.width
-      bodyStyle.overflow = previousBody.overflow
-      documentStyle.overflow = previousDocumentOverflow
-      window.scrollTo({ top: scrollY, behavior: 'auto' })
-    }
-  }, [])
 }

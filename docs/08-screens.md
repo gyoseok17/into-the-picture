@@ -1,6 +1,6 @@
 # 08. 화면 · 라우트
 
-> **M6 현재 상태:** `사진 놓기`는 비교 결과보다 위에서 시작하고, 결과 상세의 `수정` 창에서 사진 변경 또는 삭제를 선택한다. 최신 흐름은 [10-m6-photo-record.md](10-m6-photo-record.md)를 기준으로 한다.
+> **M8.1 현재 상태:** `사진 놓기`는 비교 결과보다 위에서 시작하고, 결과 상세의 `수정` 창에서 사진 변경 또는 삭제를 선택한다. `마이`는 프로필·저장 수상작·사진 기록 앨범을 제공한다. 최신 흐름은 [10-m6-photo-record.md](10-m6-photo-record.md)를 기준으로 한다.
 
 > 모바일 우선(앱·웹 공통). React Router 기반. UI는 Tailwind + shadcn/ui.
 > 화면은 도메인(02)·API(04)와 1:1로 매칭되게 구성 → 프론트 기능 폴더(`src/features/*`)와 일치.
@@ -23,8 +23,9 @@
 | `/contests` | **수상작** 목록 + 필터(계절·등급·부문·지역) | `/contests`, `/contests/filters` | |
 | `/contests/:id` | 수상작 상세 — 이미지·지도·길안내·집중률·하트 저장 | `/contests/:id`, `/contests/:id/crowd`, `/me/favorites/contests/:id` | |
 | `/crowd` | **혼잡도** — 지역→관광지 선택, 수상작·관광사진·30일 캘린더 | `/crowd/regions`, `/crowd/sigungu`, `/crowd/attractions`, `/crowd/contests`, `/photos`, `/crowd` | |
-| `/compare` | **비교** — 내 사진 업로드 + 수상작 나란히 | `/me/photos`, `/contests` | 🔒 |
-| `/me` | **마이** — 프로필·저장한 수상작 목록 | `/users/me`, `/me/favorites/contests` | 🔒 |
+| `/compare` | **수상작 비교** — 내 사진 업로드 + 수상작 나란히 | `/me/photos`, `/contests` | 🔒 |
+| `/me` | **마이** — 프로필·저장한 수상작과 내 앨범 진입 | `/users/me`, `/me/favorites/contests` | 🔒 |
+| `/me/album` | **내 앨범** — 스토리·맵, 사진 추가, 별도 보관함 | `/me/photos`, `/me/photos/map` | 🔒 |
 | `/me/photos` | 내 업로드 사진 관리 | `/me/photos` | 🔒 |
 | `/login` | 카카오 로그인 | `/auth/kakao` | |
 
@@ -33,7 +34,7 @@
 사용자 플로우(04)의 중심. 한 화면에서:
 1. 대표 이미지(원본) + 제목·촬영자·수상정보
 2. **지도** — 좌표(lat/lng)에 마커 (카카오 JS SDK) + **길안내** 버튼
-3. **집중률 캘린더** — `crowdAvailable=true`면 shadcn `Calendar`에 30일 혼잡도 색상 + 추천일 강조. 없으면 섹션 숨김(graceful)
+3. **집중률 캘린더** — `crowdAvailable=true`면 shadcn `Calendar`에 30일 혼잡도 색상 + 추천일을 강조한다. 예측 범위가 두 달에 걸치면 한 달씩 표시하고 이전·다음 버튼으로 이동한다. 제공되지 않으면 섹션을 숨기지 않고 미제공 안내를 표시한다.
 4. **하트 저장** 토글 — 비로그인 시 로그인 뒤 원래 작품으로 복귀
 5. (향후) **주변 할거리** 섹션 (B6)
 

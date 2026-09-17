@@ -1,0 +1,17 @@
+# Dependencies and generated output are rebuilt inside the image.
+node_modules
+dist
+dist-ssr
+
+# Never send local configuration or secrets to the Docker build context.
+.env
+.env.*
+!.env.example
+
+# Local and platform-specific artifacts are not needed to build the web app.
+.git
+.gitignore
+*.log
+.DS_Store
+android
+ios

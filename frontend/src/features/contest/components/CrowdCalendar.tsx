@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { format, parseISO } from 'date-fns'
+import { useEffect, useMemo, useState } from 'react'
+import { format, parseISO, startOfMonth } from 'date-fns'
 import { ko } from 'date-fns/locale'
 
 import { Calendar } from '@/components/ui/calendar'
@@ -28,8 +28,13 @@ const LEVEL_DOT: Record<Level, string> = {
   high: 'bg-rose-500',
 }
 
-const isSameMonth = (a: Date, b: Date) =>
-  a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth()
+export function CrowdUnavailableNotice() {
+  return (
+    <p className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
+      방문 집중률 정보가 제공되지 않아요.
+    </p>
+  )
+}
 
 export function CrowdCalendar({ forecast }: { forecast: CrowdForecast }) {
   const view = useMemo(() => {
@@ -58,7 +63,9 @@ export function CrowdCalendar({ forecast }: { forecast: CrowdForecast }) {
       rateByKey,
       fromDate,
       toDate,
-      numberOfMonths: fromDate && toDate && !isSameMonth(fromDate, toDate) ? 2 : 1,
+      fromMonth: fromDate ? startOfMonth(fromDate) : undefined,
+      toMonth: toDate ? startOfMonth(toDate) : undefined,
+      calendarKey: sortedKeys.join(','),
       modifiers: { low, medium, high, recommended },
       modifiersClassNames: {
         low: 'bg-emerald-100 text-emerald-900',
@@ -70,6 +77,14 @@ export function CrowdCalendar({ forecast }: { forecast: CrowdForecast }) {
   }, [forecast])
 
   const [selected, setSelected] = useState<Date | undefined>(view.fromDate)
+
+  useEffect(() => {
+    setSelected(view.fromDate)
+  }, [view.fromDate])
+
+  if (!view.fromDate || !view.toDate) {
+    return <CrowdUnavailableNotice />
+  }
 
   const selectedKey = selected ? format(selected, 'yyyy-MM-dd') : null
   const selectedRate = selectedKey ? view.rateByKey.get(selectedKey) : undefined
@@ -95,7 +110,10 @@ export function CrowdCalendar({ forecast }: { forecast: CrowdForecast }) {
           defaultMonth={view.fromDate}
           fromDate={view.fromDate}
           toDate={view.toDate}
-          numberOfMonths={view.numberOfMonths}
+          fromMonth={view.fromMonth}
+          toMonth={view.toMonth}
+          numberOfMonths={1}
+          key={view.calendarKey}
           locale={ko}
           modifiers={view.modifiers}
           modifiersClassNames={view.modifiersClassNames}

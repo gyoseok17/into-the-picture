@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 
 import { AspectImage } from '@/components/AspectImage'
 import { Badge } from '@/components/ui/badge'
-import { CrowdCalendar } from '@/features/contest/components/CrowdCalendar'
+import { CrowdCalendar, CrowdUnavailableNotice } from '@/features/contest/components/CrowdCalendar'
 import { PhotoAlbumGrid, groupPhotoPage } from '@/features/photo-search/components/PhotoAlbums'
 import { usePhotos } from '@/features/photo-search/hooks/usePhotos'
 import { ErrorState } from '@/components/state/ErrorState'
@@ -24,6 +24,7 @@ export default function CrowdPage() {
   const showPhotoSearch = Boolean(forecast.data)
   const photos = usePhotos(attraction, showPhotoSearch)
   const photoAlbums = useMemo(() => photos.data ? groupPhotoPage(photos.data.pages[0]?.content ?? []) : [], [photos.data])
+  const hasNoAttractions = Boolean(sigunguCd && !attractions.isPending && !attractions.isError && attractions.data?.length === 0)
 
   useEffect(() => { setSigunguCd(''); setAttraction('') }, [areaCd])
   useEffect(() => { setAttraction('') }, [sigunguCd])
@@ -54,10 +55,14 @@ export default function CrowdPage() {
         </Card>
       )}
 
-      {!attraction ? <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">관광지를 선택하면 날짜별 혼잡도를 보여드려요.</p> :
+      {hasNoAttractions ? (
+        <CrowdUnavailableNotice />
+      ) : null}
+
+      {!attraction && !hasNoAttractions ? <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">관광지를 선택하면 날짜별 혼잡도를 보여드려요.</p> :
         forecast.isPending ? <LoadingState label="혼잡도 불러오는 중…" /> : forecast.isError ? <ErrorState error={forecast.error} onRetry={() => void forecast.refetch()} /> :
         forecast.data ? <><section className="space-y-2"><h2 className="font-semibold">{forecast.data.attractionName}</h2></section><RelatedContests contests={relatedContests.data ?? []} isPending={relatedContests.isPending} /><TourismPhotoResults isPending={photos.isPending} isError={photos.isError} error={photos.error} onRetry={() => void photos.refetch()} albums={photoAlbums} /><section className="space-y-2"><h2 className="font-semibold">향후 30일 집중률</h2><CrowdCalendar forecast={forecast.data} /></section></> :
-        <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">선택한 관광지의 혼잡도 정보가 없어요.</p>}
+        <CrowdUnavailableNotice />}
     </section>
   )
 }

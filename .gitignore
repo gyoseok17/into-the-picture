@@ -1,5 +1,6 @@
 # --- secrets / env ---
 .env
+backend/.env
 *.local.txt
 secrets.local.*
 
@@ -15,12 +16,22 @@ node_modules/
 dist/
 .vite/
 
+# TypeScript source output must never live beside frontend source modules.
+frontend/src/**/*.js
+frontend/src/**/*.d.ts
+!frontend/src/vite-env.d.ts
+!frontend/src/types/kakao.d.ts
+
 # --- java / backend (추후) ---
 target/
 build/
 bin/
 .gradle/
 .tmp-gradle/
+.gradle-*/
+backend/.gradle-*/
+backend/.bootrun*.log
+_workspace/backend/*-bootrun*.log
 
 # --- 업로드/로컬 스토리지 (추후) ---
 uploads/

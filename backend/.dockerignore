@@ -1,0 +1,9 @@
+.env
+.gradle
+.gradle-*
+.tmp-gradle
+build
+uploads
+.bootrun*.log
+.run*.log
+bin

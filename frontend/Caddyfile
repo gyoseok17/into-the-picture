@@ -1,0 +1,23 @@
+# APP_DOMAIN is injected by Compose at runtime (for example: example.com).
+# Caddy treats this as a site address and manages HTTP-to-HTTPS redirects and
+# certificates for a real domain automatically.
+{$APP_DOMAIN} {
+
+	encode zstd gzip
+
+	# These handle blocks are mutually exclusive and precede SPA fallback.
+	handle /api/* {
+		reverse_proxy backend:8080
+	}
+
+	# Image and uploaded-file URLs returned by the existing API stay same-origin.
+	handle /files/* {
+		reverse_proxy backend:8080
+	}
+
+	handle {
+		root * /usr/share/caddy
+		try_files {path} /index.html
+		file_server
+	}
+}

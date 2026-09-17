@@ -46,7 +46,11 @@ public class KakaoAccountClient {
             if (id <= 0) throw new BusinessException(ErrorCode.UNAUTHORIZED, "Kakao account response is invalid.");
             JsonNode account = root.path("kakao_account");
             JsonNode profile = account.path("profile");
-            String nickname = profile.path("nickname").asText("Kakao user");
+            String nickname = firstText(
+                profile.path("nickname"),
+                root.path("properties").path("nickname")
+            );
+            if (nickname == null) nickname = "카카오 사용자";
             String image = profile.path("profile_image_url").isNull() ? null : profile.path("profile_image_url").asText(null);
             String email = account.path("email").isNull() ? null : account.path("email").asText(null);
             return new KakaoUser(id, nickname, image, email);
@@ -95,6 +99,16 @@ public class KakaoAccountClient {
 
     private String encode(String value) {
         return java.net.URLEncoder.encode(value, java.nio.charset.StandardCharsets.UTF_8);
+    }
+
+    private String firstText(JsonNode... candidates) {
+        for (JsonNode candidate : candidates) {
+            if (candidate != null && !candidate.isMissingNode() && !candidate.isNull()) {
+                String value = candidate.asText().trim();
+                if (!value.isEmpty()) return value;
+            }
+        }
+        return null;
     }
     public record KakaoUser(long id, String nickname, String profileImageUrl, String email) {}
 }

@@ -6,6 +6,9 @@ import path from 'node:path'
 export default defineConfig({
   plugins: [react()],
   resolve: {
+    // This source tree is TypeScript-first. Keep stale compiler artifacts from
+    // shadowing a same-named .ts/.tsx module during extensionless imports.
+    extensions: ['.mjs', '.mts', '.ts', '.tsx', '.js', '.jsx', '.json'],
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
