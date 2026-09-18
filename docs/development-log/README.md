@@ -28,3 +28,5 @@
 | M8 | 완료 | [M8-photo-first-screen-experience.md](M8-photo-first-screen-experience.md) |
 | M8.1 | 완료 | [M8.1-photo-record-album.md](M8.1-photo-record-album.md) |
 | M8.2 | 완료 | [M8.2-harness-commit-unit.md](M8.2-harness-commit-unit.md) |
+| M8.3 | 완료 | [M8.3-s3-selectable-storage.md](M8.3-s3-selectable-storage.md) |
+| M8.4 | 완료 | [M8.4-docker-hub-ec2-deployment.md](M8.4-docker-hub-ec2-deployment.md) |
