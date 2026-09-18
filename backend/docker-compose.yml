@@ -22,6 +22,8 @@ services:
       # Local storage keeps files outside the image layer. This value is ignored
       # when APP_STORAGE_TYPE=s3 is supplied through backend/.env.
       APP_STORAGE_LOCAL_DIR: /app/uploads
+      # Derived from the same domain Caddy serves; used for CORS and Kakao callbacks.
+      APP_CORS_ALLOWED_ORIGINS: https://${APP_DOMAIN:?Set APP_DOMAIN in backend/.env}
       # This Compose file is an HTTPS deployment path. Do not allow a value
       # from .env to accidentally issue the refresh cookie without Secure.
       APP_AUTH_REFRESH_COOKIE_SECURE: "true"

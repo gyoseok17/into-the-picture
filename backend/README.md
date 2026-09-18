@@ -28,7 +28,7 @@ Spring Boot 3.3 / Java 17+ / PostgreSQL(Supabase) / Flyway. 패키지 루트 `co
 `docker-compose.yml`은 로컬 소스를 빌드하지 않고 Docker Hub 이미지를 실행합니다.
 
 1. `cp .env.example .env` 후 운영 시크릿과 DB·S3 값을 채웁니다.
-2. `APP_DOMAIN`에는 실제 도메인을, `APP_IMAGE_TAG`에는 배포할 고정 버전(최초 `m8.3`)을 설정합니다.
+2. `APP_DOMAIN`에는 실제 도메인을, `APP_IMAGE_TAG`에는 배포할 고정 버전(최초 `m8.3`)을 설정합니다. HTTPS Compose는 `APP_DOMAIN`에서 CORS와 카카오 콜백 검증용 허용 출처(`https://<APP_DOMAIN>`)를 자동으로 만드므로 `APP_CORS_ALLOWED_ORIGINS`를 별도로 설정하지 않습니다.
 3. 실행합니다.
 
 ```bash

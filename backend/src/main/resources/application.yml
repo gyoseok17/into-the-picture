@@ -62,12 +62,9 @@ app:
       # Local HTTP development keeps this false. Set APP_AUTH_REFRESH_COOKIE_SECURE=true in HTTPS production.
       secure: ${APP_AUTH_REFRESH_COOKIE_SECURE:false}
   cors:
-    allowed-origins:
-      - http://localhost:5173
-      - http://localhost:4173
-      - http://localhost
-      - https://localhost
-      - capacitor://localhost
+    # Spring binds the comma-separated APP_CORS_ALLOWED_ORIGINS value to List<String>.
+    # Leave this default for local Gradle/Vite and Capacitor development.
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:4173,http://localhost,https://localhost,capacitor://localhost}
 
 logging:
   level:
