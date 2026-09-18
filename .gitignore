@@ -1,6 +1,7 @@
 # --- secrets / env ---
 .env
 backend/.env
+backend/docker-compose.local.yml
 *.local.txt
 secrets.local.*
 

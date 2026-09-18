@@ -27,8 +27,8 @@ services:
     env_file:
       - .env
     environment:
-      # The current LocalFileStorage implementation must keep its files outside
-      # the image layer. S3/Supabase Storage is deliberately a later change.
+      # Local storage keeps files outside the image layer. This value is ignored
+      # when APP_STORAGE_TYPE=s3 is supplied through backend/.env.
       APP_STORAGE_LOCAL_DIR: /app/uploads
       # This Compose file is an HTTPS deployment path. Do not allow a value
       # from .env to accidentally issue the refresh cookie without Secure.

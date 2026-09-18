@@ -21,6 +21,19 @@ Spring Boot 3.3 / Java 17+ / PostgreSQL(Supabase) / Flyway. 패키지 루트 `co
 
 ## Docker 배포 실행 (단일 HTTPS 도메인 + 외부 Supabase DB)
 
+### Photo storage selection
+
+- Default `APP_STORAGE_TYPE=local` stores files under `APP_STORAGE_LOCAL_DIR` (default `./uploads`).
+- For S3 set `APP_STORAGE_TYPE=s3`, `AWS_REGION`, and `APP_STORAGE_S3_BUCKET`. Credentials are resolved from local AWS CLI/SSO credentials or the EC2 IAM role; do not put AWS access keys in `.env`.
+- Keep the S3 bucket private. The EC2 role needs only `GetObject`, `PutObject`, and `DeleteObject` for `u/*`; the backend keeps its existing authorized file endpoints instead of exposing S3 URLs.
+
+### 로컬 Docker Compose에서 S3 확인
+
+1. AWS CLI로 `into-the-picture-local` 프로필을 만든다. 자격 증명은 프로젝트 파일이 아닌 `%USERPROFILE%\.aws`에만 둔다.
+2. `backend/.env`에서 `APP_DOMAIN=localhost`, `APP_STORAGE_TYPE=s3`과 S3 리전·버킷을 설정한다.
+3. Git 제외 파일 `backend/docker-compose.local.yml`에 `.aws` 폴더의 읽기 전용 bind mount와 `AWS_PROFILE=into-the-picture-local`만 둔다.
+4. `docker compose -f docker-compose.yml -f docker-compose.local.yml up --build`로 실행한다. `https://localhost`의 Caddy 로컬 인증서는 브라우저 신뢰 설정이 필요할 수 있다.
+
 ```bash
 # backend/.env를 만든 뒤, APP_DOMAIN과 VITE_KAKAO_JS_KEY를 포함한 값을 채운다.
 # DB·JWT·서버 API 시크릿도 같은 파일에만 둔다.

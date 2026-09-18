@@ -29,6 +29,14 @@ DB(`UserPhoto`)에는 `storageKey`(내부 키)와 `url`(조회용)을 분리 저
 
 ## 운영 (S3FileStorage)
 
+### M8.3 selectable implementation
+
+- `APP_STORAGE_TYPE` selects `LocalFileStorage` (`local`, default) or `S3FileStorage` (`s3`).
+- S3 requires `AWS_REGION` and `APP_STORAGE_S3_BUCKET`; missing or invalid settings fail during startup.
+- The AWS SDK uses local AWS CLI/SSO credentials or an EC2 IAM role. No long-lived AWS key belongs in this repository's `.env`.
+- Both adapters preserve `u/{userId}/{uuid}.{extension}` keys and keep S3 objects private behind the existing backend file authorization paths.
+- Moving existing local objects to S3 is a separate migration task.
+
 - S3 호환(AWS S3 / Cloudflare R2 / 네이버 오브젝트스토리지).
 - `storageKey` = 오브젝트 키, `url` = CDN URL 또는 (비공개 시)presigned URL.
 - 전환은 `app.storage.type=s3` + 자격증명 환경변수만 (코드 변경 없음).
