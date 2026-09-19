@@ -17,7 +17,8 @@ import lombok.NoArgsConstructor;
 /**
  * 공모전 수상작 캐시(docs/03). 외부 PhokoAwrdService 응답을 동기화 저장.
  * 원문 + 파싱값을 함께 저장(파싱 로직이 바뀌어도 원문 보존 → 재파싱 가능).
- * lat/lng/crowdAttractionName 은 나중에 채우는 보강 필드(null 허용).
+ * lat/lng/crowdAttractionName 은 나중에 채우는 보강 필드(null 허용)다. 지도 권역 코드는
+ * 수상작별로 검증해 고정한 참조 데이터라 sync 시에도 함께 저장한다.
  *
  * <p>채우는 주체: 원문·파싱값은 external 의 sync(빌더로 생성),
  * 보강값은 geocode/crowd-match 배치 또는 상세 on-demand(assignXxx 메서드).
@@ -105,6 +106,13 @@ public class ContestWork {
     @Column(length = 20)
     private String season;
 
+    // --- 검증된 지도 위치(sync, 명시 데이터) ---
+    @Column(name = "map_region_code", length = 20)
+    private String mapRegionCode;
+
+    @Column(name = "map_city_code", length = 50)
+    private String mapCityCode;
+
     // --- 보강값(geocode/crowd-match 배치, null 허용) ---
     private Double lat;
 
@@ -121,7 +129,8 @@ public class ContestWork {
     private ContestWork(String contentId, String title, String titleEn, String location, String locationEn,
                         String sidoCode, String sido, String sigungu, String photographer, String photographerEn,
                         String filmMonth, String awardRaw, String awardDivision, String awardGrade, String keywordsRaw,
-                        String season, String orgImageUrl, String thumbImageUrl, String copyrightCode,
+                        String season, String mapRegionCode, String mapCityCode,
+                        String orgImageUrl, String thumbImageUrl, String copyrightCode,
                         Double lat, Double lng, String crowdAttractionName,
                         LocalDateTime externalRegDt, LocalDateTime externalMdfcnDt, LocalDateTime syncedAt) {
         this.contentId = contentId;
@@ -140,6 +149,8 @@ public class ContestWork {
         this.awardGrade = awardGrade;
         this.keywordsRaw = keywordsRaw;
         this.season = season;
+        this.mapRegionCode = mapRegionCode;
+        this.mapCityCode = mapCityCode;
         this.orgImageUrl = orgImageUrl;
         this.thumbImageUrl = thumbImageUrl;
         this.copyrightCode = copyrightCode;

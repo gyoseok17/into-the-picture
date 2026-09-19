@@ -1,6 +1,6 @@
 # 03. 데이터 모델
 
-> **M6 현재 상태:** `user_photo`는 원본 파일 정보만 보관하고, 사진첩 기록과 수상작 연결은 `photo_record`가 담당한다. 기존 `photo_comparison` 테이블은 V5 마이그레이션에서 `photo_record`로 이관 후 제거했다. 현재 사진 기록 모델의 상세는 [10-m6-photo-record.md](10-m6-photo-record.md)를 기준으로 한다.
+> **M9 현재 상태:** `user_photo`는 원본 파일 정보만 보관하고, 사진첩 기록과 수상작 연결은 `photo_record`가 담당한다. 기존 `photo_comparison` 테이블은 V5 마이그레이션에서 `photo_record`로 이관 후 제거했다. V17에서 사용하지 않는 보관 상태 열(`archived_at`)도 제거했다. 현재 사진 기록 모델의 상세는 [10-m6-photo-record.md](10-m6-photo-record.md)를 기준으로 한다.
 
 > **전제(실제 API 확인 후 확정):**
 > - **공모전 수상작만 DB에 저장(동기화)** — 전체 95건으로 작고 거의 안 변하며 필터(계절·등급)가 많기 때문. 저장 시 텍스트를 파싱해 정리.
@@ -113,6 +113,7 @@ BaseTimeEntity
 | location / locationEn | VARCHAR(255) | `koFilmst` / `enFilmst` 기반 촬영지 텍스트. 실제 촬영 관점이 사용자 검토로 확정된 소수 작품은 보정값을 사용 |
 | sidoCode | VARCHAR(10) | `lDongRegnCd` (법정동 시도 코드) |
 | sido / sigungu | VARCHAR(50) | **파싱**: location에서 시도·시군구 추출 (집중률 매칭·필터용) |
+| mapRegionCode / mapCityCode | VARCHAR(20) / VARCHAR(50) | 앨범 지도와 같은 **검증된 내부 권역·도시 코드**. 주소를 런타임으로 추측하지 않고 95건 승인값·동기화 보정표로 저장 |
 | photographer / photographerEn | VARCHAR(100) | `koCmanNm` / `enCmanNm` |
 | filmMonth | VARCHAR(6) | `filmDay` (YYYYMM) |
 | awardRaw | VARCHAR(100) | `koWnprzDiz` 원문 (`스마트폰 부문 [입선]`) |
@@ -128,7 +129,7 @@ BaseTimeEntity
 
 - 인덱스: `season`, `awardGrade`, `sigungu` (필터/매칭 조회).
 - 동기화: 배치(`ContestSyncJob`)가 `phokoAwrdSyncList`로 적재·갱신. 도메인은 `ContestProvider` 인터페이스에만 의존 → 나중에 소스 바꿔도 도메인 불변.
-- `lat/lng`, `crowdAttractionName`은 **나중에 채워지는 보강 필드** — 카카오 키/코드표 확보 후 보강 배치로 갱신.
+- `lat/lng`, `crowdAttractionName`은 **나중에 채워지는 보강 필드** — 카카오 키/코드표 확보 후 보강 배치로 갱신. 사용자 검토로 확정한 위치는 동기화 보정표가 우선한다.
 
 ## 확장 대비 (지금 만들지 않음, 자리만 비워둠)
 

@@ -28,7 +28,7 @@ const features = [
     number: '04',
     title: '내 사진 남기기',
     description: '내 사진을 수상작과 함께 기록해요.',
-    to: '/compare',
+    to: '/me/album',
   },
 ] as const
 

@@ -34,9 +34,8 @@ public class UserPhotoController {
     public UserPhotoController(UserPhotoService service) { this.service = service; }
 
     @GetMapping
-    public List<UserPhotoDto> list(@AuthenticationPrincipal JwtPrincipal principal,
-                                   @RequestParam(defaultValue = "false") boolean archived) {
-        return service.list(principal.userId(), archived);
+    public List<UserPhotoDto> list(@AuthenticationPrincipal JwtPrincipal principal) {
+        return service.list(principal.userId());
     }
 
     @GetMapping("/map")

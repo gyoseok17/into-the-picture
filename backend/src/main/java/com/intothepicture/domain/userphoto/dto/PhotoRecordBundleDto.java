@@ -14,6 +14,5 @@ public record PhotoRecordBundleDto(
     String mapRegionCode,
     String mapCityCode,
     String memo,
-    LocalDateTime archivedAt,
     LocalDateTime createdAt
 ) { }

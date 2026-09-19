@@ -24,6 +24,8 @@ export interface ContestDetail extends ContestSummary {
   imageUrl: string // 원본, https 치환됨
   lat: number | null // 지오코딩 결과(없으면 null)
   lng: number | null
+  mapRegionCode: string | null // 앨범 지도와 동일한 검증된 상위 권역 코드
+  mapCityCode: string | null // 앨범 지도와 동일한 검증된 세부 지역 코드
   copyright: string // "Type1"
   crowdAvailable: boolean // true면 프론트가 /crowd 호출
 }

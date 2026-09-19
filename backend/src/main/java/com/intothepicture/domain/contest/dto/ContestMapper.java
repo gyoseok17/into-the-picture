@@ -50,6 +50,8 @@ public final class ContestMapper {
             ImageUrls.toHttps(work.getOrgImageUrl()),
             work.getLat(),
             work.getLng(),
+            work.getMapRegionCode(),
+            work.getMapCityCode(),
             work.getCopyrightCode(),
             work.isCrowdAvailable()
         );

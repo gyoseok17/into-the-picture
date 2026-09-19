@@ -14,20 +14,17 @@ public interface PhotoRecordRepository extends JpaRepository<PhotoRecord, Long> 
     boolean existsByUserIdAndContestId(Long userId, Long contestId);
     Optional<PhotoRecord> findByIdAndUserId(Long id, Long userId);
     boolean existsByUserPhotoId(Long userPhotoId);
-    List<PhotoRecord> findAllByContestIdAndComparisonVisibilityAndArchivedAtIsNullOrderByContestLinkedAtDesc(
+    List<PhotoRecord> findAllByContestIdAndComparisonVisibilityOrderByContestLinkedAtDesc(
         Long contestId, ComparisonVisibility comparisonVisibility);
-    Optional<PhotoRecord> findByIdAndContestIdAndComparisonVisibilityAndArchivedAtIsNull(
+    Optional<PhotoRecord> findByIdAndContestIdAndComparisonVisibility(
         Long id, Long contestId, ComparisonVisibility comparisonVisibility);
     List<PhotoRecord> findAllByBundleIdOrderByCreatedAtAsc(Long bundleId);
-    List<PhotoRecord> findAllByUserIdAndBundleIsNullAndArchivedAtIsNullOrderByCreatedAtDesc(Long userId);
-    List<PhotoRecord> findAllByUserIdAndBundleIsNullAndArchivedAtIsNotNullOrderByCreatedAtDesc(Long userId);
+    List<PhotoRecord> findAllByUserIdAndBundleIsNullOrderByCreatedAtDesc(Long userId);
 
     @Query("""
         select record from PhotoRecord record
         where record.user.id = :userId
-          and ((:archived = true and record.archivedAt is not null)
-               or (:archived = false and record.archivedAt is null))
         order by coalesce(record.takenAt, record.createdAt) desc, record.createdAt desc
         """)
-    List<PhotoRecord> findAllByUserIdAndArchived(@Param("userId") Long userId, @Param("archived") boolean archived);
+    List<PhotoRecord> findAllByUserIdForAlbum(@Param("userId") Long userId);
 }

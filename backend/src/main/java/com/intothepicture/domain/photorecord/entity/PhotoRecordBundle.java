@@ -22,8 +22,6 @@ public class PhotoRecordBundle extends BaseTimeEntity {
     @Column(name = "map_region_code", length = 32) private String mapRegionCode;
     @Column(name = "map_city_code", length = 48) private String mapCityCode;
     @Column(length = 500) private String memo;
-    @Column(name = "archived_at") private LocalDateTime archivedAt;
-
     @Builder
     private PhotoRecordBundle(User user, LocalDateTime takenAt, LocalDateTime endedAt, String placeName, String mapRegionCode,
                               String mapCityCode, String memo) {

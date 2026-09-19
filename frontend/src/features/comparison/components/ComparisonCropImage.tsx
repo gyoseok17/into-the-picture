@@ -79,7 +79,46 @@ export function ComparisonCropImage({
 
   return (
     <div className={`relative overflow-hidden bg-muted ${className}`} style={{ aspectRatio: value.aspectRatio }}>
-      {resolvedSrc ? <img src={resolvedSrc} alt={alt} className={`absolute max-w-none select-none ${imageClassName}`} style={style} /> : null}
+      {resolvedSrc ? (
+        <img
+          src={resolvedSrc}
+          alt={alt}
+          draggable={false}
+          onDragStart={(event) => event.preventDefault()}
+          className={`absolute max-w-none select-none ${imageClassName}`}
+          style={style}
+        />
+      ) : null}
+    </div>
+  )
+}
+
+/** Renders the contest source inside the same saved comparison frame as its photo. */
+export function ComparisonContestCropImage({
+  src,
+  alt,
+  crop,
+  className = '',
+}: {
+  src: string
+  alt: string
+  crop?: ComparisonCrop | null
+  className?: string
+}) {
+  const value = comparisonCropOrDefault(crop)
+
+  return (
+    <div
+      className={`overflow-hidden bg-muted ${className}`}
+      style={{ aspectRatio: value.aspectRatio }}
+    >
+      <img
+        src={src}
+        alt={alt}
+        draggable={false}
+        onDragStart={(event) => event.preventDefault()}
+        className="h-full w-full object-contain"
+      />
     </div>
   )
 }

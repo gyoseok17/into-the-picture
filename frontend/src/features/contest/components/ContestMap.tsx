@@ -6,20 +6,20 @@ import { isKakaoMapEnabled } from '@/lib/env'
 import { buildKakaoDirectionsUrl, loadKakaoMaps } from '@/lib/kakaoMap'
 
 interface ContestMapProps {
-  name: string
+  destinationName: string
   lat: number | null
   lng: number | null
 }
 
 // 카카오 지도(JS SDK) 마커 + 길안내. 키 미설정/좌표 null이면 graceful 처리(앱 안 죽게).
-export function ContestMap({ name, lat, lng }: ContestMapProps) {
+export function ContestMap({ destinationName, lat, lng }: ContestMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const [mapFailed, setMapFailed] = useState(false)
 
   const hasCoords = lat != null && lng != null
   const canRenderMap = isKakaoMapEnabled && hasCoords && !mapFailed
   const directionsUrl =
-    lat != null && lng != null ? buildKakaoDirectionsUrl(name, lat, lng) : null
+    lat != null && lng != null ? buildKakaoDirectionsUrl(destinationName, lat, lng) : null
 
   useEffect(() => {
     if (!isKakaoMapEnabled || lat == null || lng == null) return

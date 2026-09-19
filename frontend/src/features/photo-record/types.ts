@@ -11,7 +11,6 @@ export interface PhotoRecord {
   takenAtSource?: PhotoTakenAtSource | null
   placeName: string | null
   memo: string | null
-  archivedAt: string | null
   contestId: number | null
   displayMode: PhotoDisplayMode
   mapRegionCode?: string | null
@@ -30,7 +29,6 @@ export interface PhotoRecordBundle {
   endedAt?: string | null
   placeName: string | null
   memo: string | null
-  archivedAt: string | null
   mapRegionCode: string | null
   mapCityCode: string | null
   createdAt: string
@@ -90,7 +88,6 @@ export interface PhotoRecordDraft {
 }
 
 export interface PhotoRecordUpdate extends PhotoRecordDraft {
-  archived?: boolean
   displayMode?: PhotoDisplayMode
 }
 

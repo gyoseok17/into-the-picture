@@ -40,9 +40,8 @@ public class PhotoRecordBundleController {
     }
 
     @GetMapping
-    public List<PhotoRecordBundleDto> list(@AuthenticationPrincipal JwtPrincipal principal,
-                                            @RequestParam(defaultValue = "false") boolean archived) {
-        return service.list(principal.userId(), archived);
+    public List<PhotoRecordBundleDto> list(@AuthenticationPrincipal JwtPrincipal principal) {
+        return service.list(principal.userId());
     }
 
     @GetMapping("/map")

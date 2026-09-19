@@ -1,6 +1,6 @@
 # 04. API 명세 (REST)
 
-> **M8.1 현재 상태:** 사진 놓기 API(`POST/GET/PATCH/DELETE /me/comparisons`)와 개인 사진 기록 API(`POST/GET/PATCH/DELETE /me/photos`, `GET /me/photos/{recordId}/file`)가 구현됐다. 최신 명세는 [10-m6-photo-record.md](10-m6-photo-record.md)를 기준으로 한다.
+> **M9 현재 상태:** 개인 사진 기록 API와 수상작 비교 API가 구현됐다. 앨범은 묶음 조회·지도 API를 주로 사용하고, 수상작 비교의 새 사진은 단일 사진 업로드 API를 사용한다. 비교 사진 교체·저장 후 구도 수정 PATCH API는 서버 호환용으로만 남아 있으며 현재 UI에는 노출하지 않는다. 최신 명세는 [10-m6-photo-record.md](10-m6-photo-record.md)를 기준으로 한다.
 
 > 프론트(React)↔백(Spring Boot) 계약. 실제 외부 API 응답(06)을 **내부 DTO로 변환**한 형태로 제공한다.
 > 외부 필드명(galWebImageUrl, koTitle…)은 절대 노출하지 않는다 → 외부 API가 바뀌어도 이 계약은 유지(확장성).
@@ -96,9 +96,10 @@
   "awardDivision": "스마트폰 부문", "awardGrade": "입선", "season": "겨울",
   "keywords": ["가야산 설경","겨울","눈"] }
 
-// GET /contests/{id} (ContestDetailDto) — 요약 + 좌표/원본
+// GET /contests/{id} (ContestDetailDto) — 요약 + 좌표/원본/검증된 앨범 지도 코드
 { "...": "...(요약 동일)", "imageUrl": "https://...image2_1.jpg",
-  "lat": 35.8043935, "lng": 128.1083354, "copyright": "Type1",
+  "lat": 35.8043935, "lng": 128.1083354,
+  "mapRegionCode": "GYEONGSANG", "mapCityCode": "HAPCHEON", "copyright": "Type1",
   "crowdAvailable": true }      // 집중률 매칭 여부 (프론트가 /crowd 호출할지 판단)
 ```
 
@@ -145,21 +146,27 @@
 | 메서드 | 경로 | 설명 |
 |--------|------|------|
 | POST | `/me/photos` | JPEG·PNG·WebP·HEIC/HEIF 사진 기록 업로드 (10MB 이하, multipart: file, takenAt?, placeName?, memo?) |
-| GET | `/me/photos?archived=false|true` | 활성 또는 보관 사진 기록 목록 |
-| GET | `/me/photos/map` | 활성 사진의 장소명 좌표가 있는 지도 핀 목록 |
-| PATCH | `/me/photos/{id}` | 촬영일·장소·메모·보관·수상작 표시 방식 변경 |
+| GET | `/me/photos` | 호환용 단일 사진 기록 목록 (현재 앨범 UI는 묶음 목록 사용) |
+| GET | `/me/photos/map` | 호환용 단일 사진 지도 핀 목록 (현재 앨범 UI는 묶음 지도 사용) |
+| GET | `/me/photos/map/locations` | 지도 지역·시군 선택지 목록 |
+| PUT | `/me/photos/map/representative` | 한 장소의 대표 사진 기록 변경 |
+| PATCH | `/me/photos/{id}` | 촬영일·장소·메모·수상작 표시 방식 변경 |
 | DELETE | `/me/photos/{id}` | 내 사진 삭제 |
+| POST | `/me/photos/bundles` | 1~3장 사진을 한 여행 기록 묶음으로 업로드 (multipart: files, takenAt?, endedAt?, manualTakenAts?, placeName?, mapRegionCode?, mapCityCode?, memo?) |
+| GET | `/me/photos/bundles` | 내 앨범의 여행 기록 묶음 목록 |
+| GET | `/me/photos/bundles/map` | 내 앨범 묶음의 지도 핀 목록 |
+| DELETE | `/me/photos/bundles/{id}` | 여행 기록 묶음과 포함 사진 삭제 |
 | GET | `/me/comparisons` | 내 수상작 비교 기록과 표시 구도 조회 |
 | POST | `/me/comparisons` | 사진 기록과 수상작을 연결하고 선택한 표시 구도 저장 |
-| PATCH | `/me/comparisons/{id}` | 비교 사진 교체와 선택한 표시 구도 저장 |
-| PATCH | `/me/comparisons/{id}/crop` | 비교용 사진의 표시 구도만 수정 |
+| PATCH | `/me/comparisons/{id}` | 서버 호환용: 비교 사진 교체와 선택한 표시 구도 저장 (현재 UI 미노출) |
+| PATCH | `/me/comparisons/{id}/crop` | 서버 호환용: 비교용 사진의 표시 구도만 수정 (현재 UI 미노출) |
 | GET | `/contests/{id}/comparisons` | 해당 수상작의 공개 비교 사진과 표시 구도 조회 |
 
 ```json
 // UserPhotoDto
 { "id": 5, "url": "/me/photos/5/file", "originalFilename": "IMG_1234.jpg",
   "takenAt": "2024-11-01T00:00:00", "placeName": "가야산", "memo": "작년 가을",
-  "archivedAt": null, "contestId": 12, "displayMode": "WITH_CONTEST", "createdAt": "2026-06-26T..." }
+  "contestId": 12, "displayMode": "WITH_CONTEST", "createdAt": "2026-06-26T..." }
 ```
 > 요청의 `takenAt`이 없을 때만 JPEG·PNG·WebP·HEIC/HEIF에서 촬영일 EXIF를 시도하며 GPS는 처리하지 않는다. 메타데이터를 읽지 못해도 업로드는 성공하고 촬영일은 빈값으로 둔다. 비교 화면은 프론트에서 내 사진 + 수상작을 나란히 렌더한다.
 > 비교 요청의 선택 `crop`은 `{ aspectRatio, zoom, offsetX, offsetY }`다. 원본 파일을 자르지 않고 비교 기록에만 저장하며, 기존 기록은 4:3·1배율·가운데를 기본값으로 사용한다.
@@ -195,7 +202,7 @@
   │ (클릭)                            │
   │ GET /contests/{id} ──────────────▶│ 상세 + lat/lng (저장값, 없으면 카카오 지오코딩 후 캐시)
   │◀──── 상세 + 좌표 + crowdAvailable │
-  │  지도 표시·길안내 (카카오 JS SDK, 좌표 사용)
+  │  지도 표시·길안내 (카카오 JS SDK, 좌표와 실제 촬영지 location 사용)
   │ crowdAvailable=true 면:           │
   │ GET /contests/{id}/crowd ────────▶│ 시군구로 집중률 조회 → 관광지명 부분일치 매칭
   │◀──── 30일 캘린더 + 추천일 ────────│   (매칭 실패 시 204)
@@ -203,7 +210,6 @@
 
 ## 향후 추가 (10-future)
 - `GET /contests/{id}/nearby` 또는 `/places/nearby?lat=&lng=` — 주변 할거리 추천 (위치기반 관광정보 API, B6)
-- `POST /me/comparisons` — 비교 기록 저장 (B1)
 
 ## 설계 메모 (확장성)
 - 모든 응답은 **내부 DTO** — 외부 필드와 분리. 외부 API 교체/캐시 전환 시 컨트롤러·프론트 불변.

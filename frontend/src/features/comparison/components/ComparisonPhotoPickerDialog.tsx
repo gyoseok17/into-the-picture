@@ -9,9 +9,13 @@ import { usePhotoRecordBundles } from '@/features/photo-record/hooks/usePhotoRec
 import { extractImageTakenAt } from '@/features/photo-record/lib/extractJpegTakenAt'
 import { formatPhotoVisitPeriod } from '@/features/photo-record/lib/formatPhotoVisitPeriod'
 import type { PhotoRecordBundle } from '@/features/photo-record/types'
-import type { UserPhotoUploadInput } from '../api'
 import { getComparisonPhotoDisplay } from '../lib/comparisonPhotoDisplay'
 import type { UserPhoto } from '../types'
+
+interface UserPhotoUploadInput {
+  file: File
+  takenAt: string
+}
 
 type PickerStep = 'start' | 'bundles' | 'bundle-photos'
 
@@ -57,7 +61,7 @@ export function ComparisonPhotoPickerDialog({
   const [pickedId, setPickedId] = useState(selectedId || 0)
   const [pendingUpload, setPendingUpload] = useState<PendingPhotoUpload | null>(null)
   const usesProvidedBundles = providedBundles !== undefined
-  const bundlesQuery = usePhotoRecordBundles(false, !usesProvidedBundles && step !== 'start')
+  const bundlesQuery = usePhotoRecordBundles(!usesProvidedBundles && step !== 'start')
   const unavailableIds = unavailablePhotoIds ?? new Set<number>()
   const selectedPhoto = photos.find((photo) => photo.id === pickedId) ?? null
   const selectableBundles = useMemo(
@@ -69,6 +73,13 @@ export function ComparisonPhotoPickerDialog({
   useEffect(() => () => {
     if (pendingUpload) URL.revokeObjectURL(pendingUpload.previewUrl)
   }, [pendingUpload])
+
+  useEffect(() => {
+    if (step !== 'bundle-photos' || pickedBundle) return
+    setStep('bundles')
+    setPickedBundleKey(null)
+    setPickedId(selectedId || 0)
+  }, [pickedBundle, selectedId, step])
 
   async function prepareUpload(file: File | undefined): Promise<void> {
     if (!file || uploadPending) return
@@ -131,7 +142,7 @@ export function ComparisonPhotoPickerDialog({
             }}
           />
 
-          {step === 'start' ? (
+          {step === 'start' && !pendingUpload ? (
             <PickerStart
               hasPhotos={photos.length > 0}
               uploadPending={uploadPending}
@@ -164,6 +175,7 @@ export function ComparisonPhotoPickerDialog({
             <PendingUploadEditor
               pendingUpload={pendingUpload}
               uploadPending={uploadPending}
+              onChooseFile={() => fileInputRef.current?.click()}
               onCancel={() => setPendingUpload(null)}
               onTakenAtChange={(takenAt) => setPendingUpload((current) => current ? {
                 ...current,
@@ -279,7 +291,7 @@ function BundlePhotoSelection({ bundle, selectedPhoto, unavailablePhotoIds, onPi
   onPick: (id: number) => void
   onConfirm: () => void
 }) {
-  if (!bundle) return <p className="py-8 text-center text-sm text-muted-foreground">선택한 기록 묶음을 찾을 수 없어요. 뒤로 가서 다시 골라 주세요.</p>
+  if (!bundle) return null
   return (
     <div className="space-y-4">
       <div className="rounded-xl bg-muted/60 px-3 py-2"><p className="text-sm font-medium">{bundle.bundle.placeName?.trim() || bundle.photos[0]?.placeName?.trim() || '장소 미기록'}</p><p className="mt-0.5 text-xs text-muted-foreground">{formatPhotoVisitPeriod(bundle.bundle.takenAt, bundle.bundle.endedAt) ?? '날짜 미기록'} · 사진 {bundle.photos.length}장</p></div>
@@ -305,24 +317,27 @@ function SelectedPhotoSummary({ photo, onConfirm }: { photo: UserPhoto; onConfir
 function PendingUploadEditor({
   pendingUpload,
   uploadPending,
+  onChooseFile,
   onCancel,
   onTakenAtChange,
   onConfirm,
 }: {
   pendingUpload: PendingPhotoUpload
   uploadPending: boolean
+  onChooseFile: () => void
   onCancel: () => void
   onTakenAtChange: (takenAt: string) => void
   onConfirm: () => void
 }) {
   const display = getComparisonPhotoDisplay({ placeName: null, takenAt: pendingUpload.takenAt })
   return (
-    <section className="mt-4 rounded-xl border bg-muted/20 p-3" aria-label="새 사진 촬영일 입력">
-      <div className="flex gap-3">
-        <img src={pendingUpload.previewUrl} alt="새로 선택한 사진 미리보기" className="h-20 w-20 shrink-0 rounded-lg object-cover" />
+    <section className="rounded-2xl border bg-muted/20 p-4" aria-label="새 사진 촬영일 입력">
+      <div className="flex items-start gap-4">
+        <img src={pendingUpload.previewUrl} alt="새로 선택한 사진 미리보기" className="h-28 w-28 shrink-0 rounded-xl bg-muted object-cover sm:h-32 sm:w-32" />
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium">{display.title}</p>
-          <label className="mt-2 grid gap-1 text-xs font-medium text-muted-foreground">
+          <p className="text-sm font-semibold">선택한 사진</p>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">{display.title}</p>
+          <label className="mt-3 grid gap-1 text-xs font-medium text-muted-foreground">
             촬영일
             <Input type="date" required aria-label="새 사진 촬영일" value={pendingUpload.takenAt} disabled={uploadPending} onChange={(event) => onTakenAtChange(event.target.value)} />
           </label>
@@ -331,9 +346,14 @@ function PendingUploadEditor({
       <p className="mt-2 text-xs text-muted-foreground">
         {pendingUpload.hasExifTakenAt ? '사진 정보에서 촬영일을 가져왔어요. 필요하면 바꿀 수 있어요.' : '사진 정보에서 촬영일을 찾지 못했어요. 촬영일을 직접 입력해 주세요.'}
       </p>
-      <div className="mt-3 flex justify-end gap-2">
-        <Button type="button" variant="ghost" size="sm" disabled={uploadPending} onClick={onCancel}>취소</Button>
-        <Button type="button" size="sm" disabled={!pendingUpload.takenAt.trim() || uploadPending} onClick={onConfirm}>{uploadPending ? '추가 중...' : '사진 추가'}</Button>
+      <div className="mt-4 flex items-center justify-between gap-2">
+        <Button type="button" variant="outline" size="sm" disabled={uploadPending} onClick={onChooseFile}>
+          <ImagePlus className="mr-1.5 h-4 w-4" aria-hidden />다른 사진
+        </Button>
+        <div className="flex gap-2">
+          <Button type="button" variant="ghost" size="sm" disabled={uploadPending} onClick={onCancel}>취소</Button>
+          <Button type="button" size="sm" disabled={!pendingUpload.takenAt.trim() || uploadPending} onClick={onConfirm}>{uploadPending ? '추가 중...' : '사진 추가'}</Button>
+        </div>
       </div>
     </section>
   )

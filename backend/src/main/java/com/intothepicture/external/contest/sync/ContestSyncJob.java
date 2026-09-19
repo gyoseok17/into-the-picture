@@ -65,7 +65,9 @@ public class ContestSyncJob {
 
     private ContestWork toEntity(ContestApiItem item) {
         Award award = AwardParser.parse(item.awardRaw());
-        String locationText = ContestLocationOverrides.apply(item.title(), item.location());
+        ContestLocationOverrides.ResolvedLocation curatedLocation = ContestLocationOverrides.resolve(
+            item.title(), item.location());
+        String locationText = curatedLocation.location();
         ParsedLocation location = LocationParser.parse(locationText);
         String season = SeasonParser.parse(item.keywordsRaw());
 
@@ -86,9 +88,13 @@ public class ContestSyncJob {
             .awardGrade(award.grade())
             .keywordsRaw(item.keywordsRaw())
             .season(season)
+            .mapRegionCode(curatedLocation.mapRegionCode())
+            .mapCityCode(curatedLocation.mapCityCode())
             .orgImageUrl(item.orgImageUrl())
             .thumbImageUrl(item.thumbImageUrl())
             .copyrightCode(item.copyrightCode())
+            .lat(curatedLocation.lat())
+            .lng(curatedLocation.lng())
             .externalRegDt(item.externalRegDt())
             .externalMdfcnDt(item.externalMdfcnDt())
             .syncedAt(LocalDateTime.now())

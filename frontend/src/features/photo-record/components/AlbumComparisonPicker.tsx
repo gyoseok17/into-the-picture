@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
 import { X } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
 
 import { ErrorState } from '@/components/state/ErrorState'
 import { LoadingState } from '@/components/state/LoadingState'
@@ -26,7 +25,6 @@ export function AlbumComparisonPicker({
   bundles: PhotoRecordBundle[]
   onClose: () => void
 }) {
-  const navigate = useNavigate()
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoRecord | null>(null)
   const [isPhotoPickerOpen, setIsPhotoPickerOpen] = useState(true)
   const contest = useContestDetail(contestId)
@@ -51,7 +49,7 @@ export function AlbumComparisonPicker({
     if (create.isPending || existing || !selectedPhoto) return
     create.mutate(
       { contestId, userPhotoId: selectedPhoto.id, crop },
-      { onSuccess: () => navigate(`/compare?contestId=${contestId}`) },
+      { onSuccess: onClose },
     )
   }
 
@@ -69,8 +67,8 @@ export function AlbumComparisonPicker({
   }
 
   useEffect(() => {
-    if (existing) navigate(`/compare?contestId=${contestId}`, { replace: true })
-  }, [contestId, existing, navigate])
+    if (existing) onClose()
+  }, [existing, onClose])
 
   if (existing) return null
 

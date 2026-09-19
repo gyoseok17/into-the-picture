@@ -7,6 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PhotoRecordBundleRepository extends JpaRepository<PhotoRecordBundle, Long> {
     Optional<PhotoRecordBundle> findByIdAndUserId(Long id, Long userId);
-    List<PhotoRecordBundle> findAllByUserIdAndArchivedAtIsNullOrderByCreatedAtDesc(Long userId);
-    List<PhotoRecordBundle> findAllByUserIdAndArchivedAtIsNotNullOrderByCreatedAtDesc(Long userId);
+    List<PhotoRecordBundle> findAllByUserIdOrderByCreatedAtDesc(Long userId);
 }

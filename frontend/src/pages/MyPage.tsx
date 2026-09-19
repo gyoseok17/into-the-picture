@@ -90,7 +90,7 @@ export default function MyPage() {
         className="flex items-center gap-3 rounded-xl border bg-card p-4 transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary"><Eye className="h-5 w-5" /></span>
-        <span className="min-w-0 flex-1"><span className="block font-semibold">공개 관리</span><span className="mt-0.5 block text-sm text-muted-foreground">비교한 사진의 공개 여부를 한눈에 관리하세요.</span></span>
+        <span className="min-w-0 flex-1"><span className="block font-semibold">비교 관리</span><span className="mt-0.5 block text-sm text-muted-foreground">비교한 사진의 공개 여부를 한눈에 관리하세요.</span></span>
         <ArrowRight className="h-4 w-4 text-muted-foreground" />
       </Link>
 
@@ -176,7 +176,7 @@ function FavoriteContestCard({ favorite, comparison }: { favorite: FavoriteConte
             </p>
           </div>
         </Link>
-        {comparison ? <div className="absolute left-3 top-3"><ContestComparisonEntry contestId={contest.id} comparison={comparison} /></div> : <div className="px-3 pb-3"><Button asChild variant="outline" size="sm" className="w-full"><Link to={`/me/album?contestId=${contest.id}`}>수상작 비교</Link></Button></div>}
+        {comparison ? <div className="absolute left-3 top-3"><ContestComparisonEntry comparison={comparison} /></div> : <div className="px-3 pb-3"><Button asChild variant="outline" size="sm" className="w-full"><Link to={`/me/album?contestId=${contest.id}`}>수상작 비교</Link></Button></div>}
         <Button
           type="button"
           variant="secondary"

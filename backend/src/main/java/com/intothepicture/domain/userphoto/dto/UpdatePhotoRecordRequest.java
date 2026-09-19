@@ -19,7 +19,6 @@ public final class UpdatePhotoRecordRequest {
     private String mapCityCode;
     private boolean memoProvided;
     private String memo;
-    private Boolean archived;
     private DisplayMode displayMode;
 
     @JsonSetter("takenAt")
@@ -37,9 +36,6 @@ public final class UpdatePhotoRecordRequest {
     @JsonSetter("memo")
     public void setMemo(String value) { this.memoProvided = true; this.memo = value; }
 
-    @JsonSetter("archived")
-    public void setArchived(Boolean value) { this.archived = value; }
-
     @JsonSetter("displayMode")
     public void setDisplayMode(DisplayMode value) { this.displayMode = value; }
 
@@ -53,6 +49,5 @@ public final class UpdatePhotoRecordRequest {
     @JsonIgnore public String mapCityCode() { return mapCityCode; }
     @JsonIgnore public boolean hasMemo() { return memoProvided; }
     @JsonIgnore public String memo() { return memo; }
-    @JsonIgnore public Boolean archived() { return archived; }
     @JsonIgnore public DisplayMode displayMode() { return displayMode; }
 }

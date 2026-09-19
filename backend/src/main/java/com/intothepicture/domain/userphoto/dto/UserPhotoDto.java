@@ -16,7 +16,6 @@ public record UserPhotoDto(
     String mapRegionCode,
     String mapCityCode,
     String memo,
-    LocalDateTime archivedAt,
     Long contestId,
     DisplayMode displayMode,
     LocalDateTime createdAt

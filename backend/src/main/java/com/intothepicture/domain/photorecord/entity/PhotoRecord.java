@@ -33,7 +33,6 @@ public class PhotoRecord extends BaseTimeEntity {
     @Column(name = "geocode_checked_at") private LocalDateTime geocodeCheckedAt;
     @Column(length = 500) private String memo;
     @Enumerated(EnumType.STRING) @Column(name = "display_mode", nullable = false, length = 20) private DisplayMode displayMode;
-    @Column(name = "archived_at") private LocalDateTime archivedAt;
     @Column(name = "contest_linked_at") private LocalDateTime contestLinkedAt;
     @Enumerated(EnumType.STRING) @Column(name = "comparison_visibility", nullable = false, length = 16)
     private ComparisonVisibility comparisonVisibility = ComparisonVisibility.PUBLIC;
@@ -110,7 +109,4 @@ public class PhotoRecord extends BaseTimeEntity {
 
     public void changeDisplayMode(DisplayMode value) { this.displayMode = value; }
 
-    public void archive() { this.archivedAt = LocalDateTime.now(); }
-
-    public void restore() { this.archivedAt = null; }
 }

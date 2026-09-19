@@ -13,21 +13,13 @@ import type {
 /** Keeps an automatic per-file date slot from being collapsed by multipart binding. */
 const AUTOMATIC_TAKEN_AT = '__AUTO__'
 
-export async function fetchPhotoRecords(
-  archived = false,
-): Promise<PhotoRecord[]> {
-  const { data } = await apiClient.get<PhotoRecord[]>('/me/photos', {
-    params: { archived },
-  })
+export async function fetchPhotoRecords(): Promise<PhotoRecord[]> {
+  const { data } = await apiClient.get<PhotoRecord[]>('/me/photos')
   return data
 }
 
-export async function fetchPhotoRecordBundles(
-  archived = false,
-): Promise<PhotoRecordBundle[]> {
-  const { data } = await apiClient.get<PhotoRecordBundle[]>('/me/photos/bundles', {
-    params: { archived },
-  })
+export async function fetchPhotoRecordBundles(): Promise<PhotoRecordBundle[]> {
+  const { data } = await apiClient.get<PhotoRecordBundle[]>('/me/photos/bundles')
   return data
 }
 

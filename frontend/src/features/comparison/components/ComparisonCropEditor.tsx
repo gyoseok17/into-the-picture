@@ -31,6 +31,10 @@ export function ComparisonCropEditor({
     ...comparisonCropOrDefault(initialCrop),
     aspectRatio: initialCrop?.aspectRatio ?? contestAspectRatio,
   }))
+  // Pointer movement can finish immediately before confirmation. Keep the
+  // latest value outside React's asynchronous render cycle so the saved crop
+  // always matches the most recently requested display position.
+  const cropRef = useRef(crop)
   const dragStart = useRef<{ x: number; y: number; crop: ComparisonCrop } | null>(null)
   const viewportRef = useRef<HTMLDivElement | null>(null)
 
@@ -39,14 +43,23 @@ export function ComparisonCropEditor({
     [contestAspectRatio, crop],
   )
 
+  function currentEditorCrop(): ComparisonCrop {
+    return { ...cropRef.current, aspectRatio: contestAspectRatio }
+  }
+
+  function commitCrop(next: ComparisonCrop): void {
+    cropRef.current = next
+    setCrop(next)
+  }
+
   function reset(): void {
-    setCrop({ aspectRatio: contestAspectRatio, zoom: 1, offsetX: 0, offsetY: 0 })
+    commitCrop({ aspectRatio: contestAspectRatio, zoom: 1, offsetX: 0, offsetY: 0 })
   }
 
   function handlePointerDown(event: React.PointerEvent<HTMLDivElement>): void {
     if (pending) return
     event.currentTarget.setPointerCapture(event.pointerId)
-    dragStart.current = { x: event.clientX, y: event.clientY, crop: editorCrop }
+    dragStart.current = { x: event.clientX, y: event.clientY, crop: currentEditorCrop() }
   }
 
   function handlePointerMove(event: React.PointerEvent<HTMLDivElement>): void {
@@ -58,11 +71,11 @@ export function ComparisonCropEditor({
     const effectiveHeight = (photoAspectRatio >= editorCrop.aspectRatio ? 1 : editorCrop.aspectRatio / photoAspectRatio) * editorCrop.zoom
     const overflowX = Math.max(1, rect.width * (effectiveWidth - 1))
     const overflowY = Math.max(1, rect.height * (effectiveHeight - 1))
-    setCrop((current) => ({
-      ...current,
+    commitCrop({
+      ...cropRef.current,
       offsetX: clamp(start.crop.offsetX + ((event.clientX - start.x) * 2) / overflowX, -1, 1),
       offsetY: clamp(start.crop.offsetY + ((event.clientY - start.y) * 2) / overflowY, -1, 1),
-    }))
+    })
   }
 
   function stopDragging(): void {
@@ -86,7 +99,13 @@ export function ComparisonCropEditor({
 
         <div className="mt-5 grid gap-3 sm:grid-cols-2">
           <div className="overflow-hidden rounded-2xl border bg-muted/40" style={{ aspectRatio: contestAspectRatio }}>
-            <img src={contestImageUrl} alt="수상작 원본" className="h-full w-full object-contain" />
+            <img
+              src={contestImageUrl}
+              alt="수상작 원본"
+              draggable={false}
+              onDragStart={(event) => event.preventDefault()}
+              className="h-full w-full object-contain"
+            />
           </div>
           <div
             ref={viewportRef}
@@ -95,6 +114,7 @@ export function ComparisonCropEditor({
             onPointerMove={handlePointerMove}
             onPointerUp={stopDragging}
             onPointerCancel={stopDragging}
+            onDragStart={(event) => event.preventDefault()}
           >
             <ComparisonCropImage src={photoUrl} alt={photoAlt} crop={editorCrop} />
           </div>
@@ -111,7 +131,7 @@ export function ComparisonCropEditor({
               step="0.05"
               value={crop.zoom}
               disabled={pending}
-              onChange={(event) => setCrop((current) => ({ ...current, zoom: Number(event.target.value) }))}
+              onChange={(event) => commitCrop({ ...cropRef.current, zoom: Number(event.target.value) })}
               className="w-full accent-primary"
               aria-label="사진 확대 정도"
             />
@@ -126,7 +146,7 @@ export function ComparisonCropEditor({
           </Button>
           <div className="flex gap-2">
             <Button type="button" variant="outline" disabled={pending} onClick={onCancel}>취소</Button>
-            <Button type="button" disabled={pending} onClick={() => onConfirm(editorCrop)}>{pending ? '저장 중…' : '이 구도로 저장'}</Button>
+            <Button type="button" disabled={pending} onClick={() => onConfirm(currentEditorCrop())}>{pending ? '저장 중…' : '이 구도로 저장'}</Button>
           </div>
         </div>
       </section>

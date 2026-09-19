@@ -66,15 +66,15 @@ public class UserPhotoService {
     }
 
     @Transactional(readOnly = true)
-    public List<UserPhotoDto> list(Long userId, boolean archived) {
-        return records.findAllByUserIdAndArchived(userId, archived).stream().map(this::dto).toList();
+    public List<UserPhotoDto> list(Long userId) {
+        return records.findAllByUserIdForAlbum(userId).stream().map(this::dto).toList();
     }
 
     @Transactional
     public List<PhotoRecordMapPinDto> map(Long userId) {
-        var activeRecords = records.findAllByUserIdAndArchived(userId, false);
-        geocodeMissingPlaces(activeRecords);
-        return activeRecords.stream()
+        var recordsForAlbum = records.findAllByUserIdForAlbum(userId);
+        geocodeMissingPlaces(recordsForAlbum);
+        return recordsForAlbum.stream()
             .map(this::mapPin)
             .flatMap(Optional::stream)
             .toList();
@@ -83,15 +83,15 @@ public class UserPhotoService {
     /** Bundle-level map contract. Legacy records deliberately remain one-photo markers. */
     @Transactional
     public List<PhotoRecordBundleMapPinDto> bundleMap(Long userId) {
-        var activeRecords = records.findAllByUserIdAndArchived(userId, false);
-        geocodeMissingPlaces(activeRecords);
+        var recordsForAlbum = records.findAllByUserIdForAlbum(userId);
+        geocodeMissingPlaces(recordsForAlbum);
         Map<String, List<PhotoRecord>> groups = new LinkedHashMap<>();
-        for (PhotoRecord record : activeRecords) {
+        for (PhotoRecord record : recordsForAlbum) {
             String key = record.getBundle() == null ? "legacy-" + record.getId() : "bundle-" + record.getBundle().getId();
             groups.computeIfAbsent(key, ignored -> new java.util.ArrayList<>()).add(record);
         }
         var activeById = new HashMap<Long, PhotoRecord>();
-        activeRecords.forEach(record -> activeById.put(record.getId(), record));
+        recordsForAlbum.forEach(record -> activeById.put(record.getId(), record));
         var selectedByLocation = new HashMap<String, Long>();
         for (PhotoMapLocationRepresentative selected : mapRepresentatives.findAllByUserIdAndRepresentativePhotoIsNotNull(userId)) {
             Long selectedPhotoId = selected.getRepresentativePhoto().getId();
@@ -124,9 +124,6 @@ public class UserPhotoService {
             throw new BusinessException(ErrorCode.INVALID_REQUEST, "photoRecordId is required.");
         }
         var record = findOwnedRecord(userId, photoRecordId);
-        if (record.getArchivedAt() != null) {
-            throw new BusinessException(ErrorCode.INVALID_REQUEST, "An archived photo record cannot represent a map location.");
-        }
         String locationKey = locationKey(record);
         var representative = mapRepresentatives.findByUserIdAndLocationKey(userId, locationKey)
             .orElseGet(() -> PhotoMapLocationRepresentative.builder()
@@ -245,9 +242,6 @@ public class UserPhotoService {
             record.changeMapLocation(mapLocation.regionCode(), mapLocation.cityCode());
         }
         if (request.hasMemo()) record.changeMemo(normalize(request.memo(), 500, "memo"));
-        if (request.archived() != null) {
-            if (request.archived()) record.archive(); else record.restore();
-        }
         if (request.displayMode() != null) changeDisplayMode(record, request.displayMode());
         return dto(record);
     }
@@ -308,7 +302,6 @@ public class UserPhotoService {
             record.getMapRegionCode(),
             record.getMapCityCode(),
             record.getMemo(),
-            record.getArchivedAt(),
             record.getContest() == null ? null : record.getContest().getId(),
             record.getDisplayMode(),
             record.getCreatedAt()

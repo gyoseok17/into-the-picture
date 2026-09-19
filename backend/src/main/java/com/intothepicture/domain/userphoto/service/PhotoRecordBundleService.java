@@ -87,13 +87,11 @@ public class PhotoRecordBundleService {
     }
 
     @Transactional(readOnly = true)
-    public List<PhotoRecordBundleDto> list(Long userId, boolean archived) {
+    public List<PhotoRecordBundleDto> list(Long userId) {
         var result = new ArrayList<PhotoRecordBundleDto>();
-        var bundleList = archived ? bundles.findAllByUserIdAndArchivedAtIsNotNullOrderByCreatedAtDesc(userId)
-            : bundles.findAllByUserIdAndArchivedAtIsNullOrderByCreatedAtDesc(userId);
+        var bundleList = bundles.findAllByUserIdOrderByCreatedAtDesc(userId);
         bundleList.stream().map(this::dto).forEach(result::add);
-        var legacy = archived ? records.findAllByUserIdAndBundleIsNullAndArchivedAtIsNotNullOrderByCreatedAtDesc(userId)
-            : records.findAllByUserIdAndBundleIsNullAndArchivedAtIsNullOrderByCreatedAtDesc(userId);
+        var legacy = records.findAllByUserIdAndBundleIsNullOrderByCreatedAtDesc(userId);
         legacy.stream().map(this::legacyDto).forEach(result::add);
         result.sort(Comparator.comparing(this::sortAt).reversed());
         return result;
@@ -120,12 +118,12 @@ public class PhotoRecordBundleService {
         return new PhotoRecordBundleDto(bundle.getId(), false,
             records.findAllByBundleIdOrderByCreatedAtAsc(bundle.getId()).stream().map(photos::dto).toList(),
             bundle.getTakenAt(), bundle.getEndedAt(), bundle.getPlaceName(), bundle.getMapRegionCode(), bundle.getMapCityCode(), bundle.getMemo(),
-            bundle.getArchivedAt(), bundle.getCreatedAt());
+            bundle.getCreatedAt());
     }
 
     private PhotoRecordBundleDto legacyDto(PhotoRecord record) {
         return new PhotoRecordBundleDto(null, true, List.of(photos.dto(record)), record.getTakenAt(), null,
-            record.getPlaceName(), record.getMapRegionCode(), record.getMapCityCode(), record.getMemo(), record.getArchivedAt(), record.getCreatedAt());
+            record.getPlaceName(), record.getMapRegionCode(), record.getMapCityCode(), record.getMemo(), record.getCreatedAt());
     }
 
     private LocalDateTime sortAt(PhotoRecordBundleDto value) {

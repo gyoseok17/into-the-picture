@@ -77,6 +77,8 @@ class ContestSyncJobTest {
         assertThat(saved.getSido()).isEqualTo("경상남도");
         assertThat(saved.getSigungu()).isEqualTo("합천군");
         assertThat(saved.getSeason()).isEqualTo("겨울");
+        assertThat(saved.getMapRegionCode()).isEqualTo("GYEONGSANG");
+        assertThat(saved.getMapCityCode()).isEqualTo("HAPCHEON");
         assertThat(saved.getSyncedAt()).isNotNull();
         assertThat(saved.hasCoordinates()).isFalse(); // 보강은 이후 배치
     }
@@ -93,6 +95,36 @@ class ContestSyncJobTest {
         verify(contestRepository).save(captor.capture());
         assertThat(captor.getValue().getLocation()).isEqualTo("경상남도 합천군, 대암산 활공장");
         assertThat(captor.getValue().getSigungu()).isEqualTo("합천군");
+    }
+
+    @Test
+    @DisplayName("검증된 95개 지도 코드는 새 DB sync에도 저장되고 강화군은 승인된 인천 코드다")
+    void persistsCuratedMapLocationForFreshSync() {
+        when(contestApiClient.fetchAll()).thenReturn(List.of(item("C42", "산사의 설야")));
+        when(contestRepository.existsByContentId("C42")).thenReturn(false);
+
+        contestSyncJob.sync();
+
+        ArgumentCaptor<ContestWork> captor = ArgumentCaptor.forClass(ContestWork.class);
+        verify(contestRepository).save(captor.capture());
+        ContestWork saved = captor.getValue();
+        assertThat(ContestLocationOverrides.curatedLocationCount()).isEqualTo(95);
+        assertThat(saved.getMapRegionCode()).isEqualTo("CAPITAL");
+        assertThat(saved.getMapCityCode()).isEqualTo("INCHEON");
+    }
+
+    @Test
+    @DisplayName("동명 지오코딩 오류가 있었던 수상작은 sync 시 검증된 좌표를 바로 저장한다")
+    void persistsCuratedCoordinatesForFreshSync() {
+        when(contestApiClient.fetchAll()).thenReturn(List.of(item("C63", "영취산의 봄")));
+        when(contestRepository.existsByContentId("C63")).thenReturn(false);
+
+        contestSyncJob.sync();
+
+        ArgumentCaptor<ContestWork> captor = ArgumentCaptor.forClass(ContestWork.class);
+        verify(contestRepository).save(captor.capture());
+        assertThat(captor.getValue().getLat()).isEqualTo(34.8205286);
+        assertThat(captor.getValue().getLng()).isEqualTo(127.7167708);
     }
 
     @Test

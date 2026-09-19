@@ -1,4 +1,4 @@
-import { Archive, Pencil, RotateCcw, Trophy } from 'lucide-react'
+import { Pencil, Trophy } from 'lucide-react'
 
 import { AspectImage } from '@/components/AspectImage'
 import { Button } from '@/components/ui/button'
@@ -11,27 +11,21 @@ import type { PhotoRecordBundle } from '../types'
 
 export function PhotoRecordBundleCard({
   bundle,
-  archived,
   updating,
   selecting,
   selected,
   onSelect,
   onEdit,
-  onArchive,
-  onRestore,
   onOpen,
   comparisonsByPhotoId,
   storyOnly = false,
 }: {
   bundle: PhotoRecordBundle
-  archived: boolean
   updating: boolean
   selecting: boolean
   selected: boolean
   onSelect: () => void
   onEdit: () => void
-  onArchive: () => void
-  onRestore: () => void
   onOpen?: () => void
   comparisonsByPhotoId: Map<number, PhotoComparison[]>
   storyOnly?: boolean
@@ -69,7 +63,6 @@ export function PhotoRecordBundleCard({
         {!selecting ? (
           <div className="flex items-center justify-between gap-1 border-t pt-2">
             {bundle.legacy ? <Button size="sm" variant="ghost" onClick={onEdit} disabled={updating}><Pencil className="h-3.5 w-3.5" />수정</Button> : <span className="px-2 text-xs text-muted-foreground">묶음 기록</span>}
-            {bundle.legacy && (archived ? <Button size="sm" variant="ghost" onClick={onRestore} disabled={updating}><RotateCcw className="h-3.5 w-3.5" />꺼내기</Button> : <Button size="sm" variant="ghost" onClick={onArchive} disabled={updating}><Archive className="h-3.5 w-3.5" />보관</Button>)}
           </div>
         ) : null}
       </div>

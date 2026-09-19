@@ -14,20 +14,19 @@ import {
 } from '../api'
 import type { PhotoRecordBundleUpload, PhotoRecordUpdate, PhotoRecordUpload } from '../types'
 
-const photoRecordKey = (archived: boolean) =>
-  ['photo-records', { archived }] as const
+const photoRecordKey = ['photo-records'] as const
 
-export function usePhotoRecords(archived: boolean) {
+export function usePhotoRecords() {
   return useQuery({
-    queryKey: photoRecordKey(archived),
-    queryFn: () => fetchPhotoRecords(archived),
+    queryKey: photoRecordKey,
+    queryFn: fetchPhotoRecords,
   })
 }
 
-export function usePhotoRecordBundles(archived: boolean, enabled = true) {
+export function usePhotoRecordBundles(enabled = true) {
   return useQuery({
-    queryKey: ['photo-record-bundles', { archived }] as const,
-    queryFn: () => fetchPhotoRecordBundles(archived),
+    queryKey: ['photo-record-bundles'] as const,
+    queryFn: fetchPhotoRecordBundles,
     enabled,
   })
 }

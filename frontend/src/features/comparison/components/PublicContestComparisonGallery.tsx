@@ -5,7 +5,7 @@ import { ErrorState } from '@/components/state/ErrorState'
 import { LoadingState } from '@/components/state/LoadingState'
 import { API_BASE } from '@/lib/env'
 import type { PublicContestComparison } from '../types'
-import { ComparisonCropImage, comparisonCropOrDefault } from './ComparisonCropImage'
+import { ComparisonContestCropImage, ComparisonCropImage } from './ComparisonCropImage'
 
 interface PublicContestComparisonGalleryProps {
   comparisons: PublicContestComparison[]
@@ -65,9 +65,12 @@ export function PublicContestComparisonGallery({
             <section aria-label="수상작과 선택한 공개 사진 비교" className="overflow-hidden rounded-2xl border bg-card shadow-sm">
               <div className="grid grid-cols-2 divide-x">
                 <ComparisonPanel label="수상작 원본">
-                  <div className="bg-muted/40" style={{ aspectRatio: comparisonCropOrDefault(selectedComparison.crop).aspectRatio }}>
-                    <img src={contestImageUrl} alt={contestTitle} className="h-full w-full object-contain" />
-                  </div>
+                  <ComparisonContestCropImage
+                    src={contestImageUrl}
+                    alt={contestTitle}
+                    crop={selectedComparison.crop}
+                    className="bg-muted/40"
+                  />
                 </ComparisonPanel>
                 <ComparisonPanel label="선택한 공개 사진">
                   <ComparisonCropImage

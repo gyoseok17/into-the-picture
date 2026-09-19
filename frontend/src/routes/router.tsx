@@ -4,7 +4,6 @@ import { AppShell } from '@/components/layout/AppShell'
 import HomePage from '@/pages/HomePage'
 import ExplorePage from '@/pages/ExplorePage'
 import CrowdPage from '@/pages/CrowdPage'
-import ComparePage from '@/pages/ComparePage'
 import MyPage from '@/pages/MyPage'
 import AlbumPage from '@/pages/AlbumPage'
 import ComparisonManagementPage from '@/features/comparison/pages/ComparisonManagementPage'
@@ -34,7 +33,6 @@ export const router = createBrowserRouter([
       {
         element: <RequireAuth />,
         children: [
-          { path: '/compare', element: <ComparePage /> },
           { path: '/me', element: <MyPage /> },
           { path: '/me/favorites', element: <MyPage /> },
           { path: '/me/photos', element: <MyPage /> },

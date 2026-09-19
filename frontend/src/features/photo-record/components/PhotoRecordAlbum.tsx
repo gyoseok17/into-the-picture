@@ -1,9 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
-  Archive,
   ArrowLeft,
-  CalendarDays,
   Camera,
   ImagePlus,
   Map as MapIcon,
@@ -11,7 +9,7 @@ import {
   Trophy,
   X,
 } from 'lucide-react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 
 import { AspectImage } from '@/components/AspectImage'
 import { EmptyState } from '@/components/state/EmptyState'
@@ -66,15 +64,12 @@ function getConnectedPhotoCount(
 
 export function PhotoRecordAlbum({ immersive = false }: { immersive?: boolean }) {
   const [searchParams, setSearchParams] = useSearchParams()
-  const navigate = useNavigate()
   const comparisonContestId = Number(searchParams.get('contestId')) || 0
-  const [view, setView] = useState<AlbumView>('active')
   const [layout, setLayout] = useState<AlbumLayout>('story')
   const [photoAddRequest, setPhotoAddRequest] = useState<{ initialLocation?: Pick<PhotoRecordDraft, 'mapRegionCode' | 'mapCityCode'> } | null>(null)
-  const isAdding = photoAddRequest !== null
-  const bundles = usePhotoRecordBundles(view === 'archive')
+  const bundles = usePhotoRecordBundles()
   const comparisons = useComparisons()
-  const map = usePhotoRecordBundleMap(view === 'active' && layout === 'map')
+  const map = usePhotoRecordBundleMap(layout === 'map')
   const update = useUpdatePhotoRecord()
   const remove = useDeletePhotoRecord()
   const removeBundle = useDeletePhotoRecordBundle()
@@ -98,22 +93,22 @@ export function PhotoRecordAlbum({ immersive = false }: { immersive?: boolean })
     (comparison) => comparison.contest.id === comparisonContestId,
   )
 
-  useEffect(() => {
-    if (comparisonContestId && pickerExistingComparison) {
-      navigate(`/compare?contestId=${comparisonContestId}`, { replace: true })
-    }
-  }, [comparisonContestId, navigate, pickerExistingComparison])
-
   function closeComparisonPicker(): void {
     const next = new URLSearchParams(searchParams)
     next.delete('contestId')
     setSearchParams(next, { replace: true })
   }
 
+  useEffect(() => {
+    if (comparisonContestId && pickerExistingComparison) closeComparisonPicker()
+  }, [comparisonContestId, pickerExistingComparison])
+
   const groupedBundles = useMemo(
     () => groupBundles(bundles.data ?? [], 'time'),
     [bundles.data],
   )
+  const hasNoBundles = groupedBundles.length === 0
+  const isEmptyActiveStory = layout === 'story' && hasNoBundles
 
   const toggleSelected = (key: string) => setSelectedItems((current) => {
     const next = new Set(current)
@@ -153,8 +148,8 @@ export function PhotoRecordAlbum({ immersive = false }: { immersive?: boolean })
     removeBundle.reset()
   }
 
-  const immersiveMap = immersive && view === 'active' && layout === 'map'
-  const immersiveStory = immersive && view === 'active' && layout === 'story'
+  const immersiveMap = immersive && layout === 'map'
+  const immersiveStory = immersive && layout === 'story'
   const sectionClass = immersive
     ? `relative left-1/2 w-screen -translate-x-1/2 -mt-6 min-h-[calc(100dvh-4rem)] bg-[#f4f8f5] md:-mt-9 ${immersiveMap ? '' : `space-y-5 px-4 pb-10 ${immersiveStory ? 'pt-16' : 'pt-20'} md:px-8`}`
     : 'space-y-4'
@@ -163,17 +158,9 @@ export function PhotoRecordAlbum({ immersive = false }: { immersive?: boolean })
     <>
     <section className={sectionClass}>
       <AlbumHeaderV2
-        view={view}
         layout={layout}
-        isAdding={isAdding}
         compact={immersive}
-        onArchiveToggle={() => {
-          setView((current) => current === 'active' ? 'archive' : 'active')
-          setLayout('story')
-          setPhotoAddRequest(null)
-        }}
         onLayoutChange={setLayout}
-        onAddToggle={() => setPhotoAddRequest((current) => current ? null : {})}
         isManaging={isManaging}
         onManageToggle={() => { setIsManaging((current) => !current); setSelectedItems(new Set()) }}
       />
@@ -186,26 +173,21 @@ export function PhotoRecordAlbum({ immersive = false }: { immersive?: boolean })
           onRetry={() => void bundles.refetch()}
         />
       ) : null}
-      {view === 'active' && layout === 'map' && map.isPending ? <LoadingState label="사진의 장소를 지도에 준비하는 중이에요." /> : null}
-      {view === 'active' && layout === 'map' && map.isError ? <ErrorState error={map.error} onRetry={() => void map.refetch()} /> : null}
-      {!bundles.isPending && !bundles.isError && !(view === 'active' && layout === 'map') && groupedBundles.length === 0 ? (
+      {layout === 'map' && map.isPending ? <LoadingState label="사진의 장소를 지도에 준비하는 중이에요." /> : null}
+      {layout === 'map' && map.isError ? <ErrorState error={map.error} onRetry={() => void map.refetch()} /> : null}
+      {!bundles.isPending && !bundles.isError && isEmptyActiveStory ? (
+        <StoryEmptyState onAdd={() => setPhotoAddRequest({})} />
+      ) : null}
+      {!bundles.isPending && !bundles.isError && layout !== 'map' && !isEmptyActiveStory && hasNoBundles ? (
         <EmptyState
-          title={
-            view === 'archive'
-              ? '보관한 사진이 없어요'
-              : '아직 남긴 사진이 없어요'
-          }
-          description={
-            view === 'archive'
-              ? '사진을 다시 꺼내면 여기에서 관리할 수 있어요.'
-              : '여행에서 남긴 장면을 바로 추가해 보세요.'
-          }
+          title="아직 남긴 사진이 없어요"
+          description="여행에서 남긴 장면을 바로 추가해 보세요."
         />
       ) : null}
-      {view === 'active' && layout === 'map' && !map.isPending && !map.isError ? <PhotoRecordMapView pins={map.data ?? []} comparisons={comparisons.data ?? []} unplacedCount={Math.max(0, (bundles.data ?? []).reduce((count, bundle) => count + bundle.photos.length, 0) - (map.data ?? []).reduce((count, pin) => count + pin.photos.length, 0))} immersive={immersiveMap} onAdd={(initialLocation) => setPhotoAddRequest({ initialLocation })} /> : null}
+      {layout === 'map' && !map.isPending && !map.isError ? <PhotoRecordMapView pins={map.data ?? []} comparisons={comparisons.data ?? []} unplacedCount={Math.max(0, (bundles.data ?? []).reduce((count, bundle) => count + bundle.photos.length, 0) - (map.data ?? []).reduce((count, pin) => count + pin.photos.length, 0))} immersive={immersiveMap} onAdd={(initialLocation) => setPhotoAddRequest({ initialLocation })} /> : null}
       {isManaging && selectedItems.size ? <div className="sticky top-3 z-30 mx-auto flex max-w-6xl items-center justify-between gap-3 rounded-xl border bg-background/95 px-3 py-2 shadow-sm backdrop-blur"><span className="text-sm font-medium">{selectedItems.size}개 선택</span><Button size="sm" variant="destructive" disabled={remove.isPending || removeBundle.isPending} onClick={() => void deleteSelected()}>선택 삭제</Button></div> : null}
       {bulkDeleteMessage ? <div role="status" className="mx-auto max-w-6xl rounded-xl border bg-background/95 px-3 py-2 text-sm shadow-sm"><div className="flex items-center justify-between gap-3"><span>{bulkDeleteMessage}</span><Button type="button" variant="ghost" size="sm" onClick={() => setBulkDeleteMessage(null)}>닫기</Button></div></div> : null}
-        {view === 'active' && layout === 'story' ? (
+        {layout === 'story' ? (
           <PhotoRecordStoryTimeline
             groups={groupedBundles}
             immersive={immersive}
@@ -217,14 +199,11 @@ export function PhotoRecordAlbum({ immersive = false }: { immersive?: boolean })
                 <div className="relative z-10 bg-white p-2 pb-6 shadow-[0_4px_14px_rgba(40,55,48,0.10)]">
                   <PhotoRecordBundleCard
                     bundle={bundle}
-                    archived={false}
                     updating={update.isPending}
                     selecting={isManaging}
                     selected={selectedItems.has(bundleKey(bundle))}
                     onSelect={() => toggleSelected(bundleKey(bundle))}
                     onEdit={() => bundle.legacy && setEditing(bundle.photos[0])}
-                    onArchive={() => bundle.legacy && update.mutate({ id: bundle.photos[0].id, update: { archived: true } })}
-                    onRestore={() => update.mutate({ id: bundle.photos[0].id, update: { archived: false } })}
                     onOpen={() => !isManaging && setStoryPreview(bundle)}
                     comparisonsByPhotoId={comparisonsByPhotoId}
                     storyOnly
@@ -234,41 +213,6 @@ export function PhotoRecordAlbum({ immersive = false }: { immersive?: boolean })
             )}
           />
         ) : null}
-      {view === 'archive' ? <div className={immersive ? 'mx-auto max-w-6xl space-y-8' : 'space-y-7'}>
-        {groupedBundles.map((group) => (
-          <section key={group.key} className="space-y-3">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <CalendarDays className="h-4 w-4" />
-              <h3 className="font-medium text-foreground">{group.label}</h3>
-              <span>{group.bundles.reduce((count, bundle) => count + bundle.photos.length, 0)}장</span>
-            </div>
-            <div className={immersive ? 'grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4' : 'grid grid-cols-2 gap-3 sm:grid-cols-3'}>
-              {group.bundles.map((bundle) => (
-                <PhotoRecordBundleCard
-                  key={bundleKey(bundle)}
-                  bundle={bundle}
-                  archived={view === 'archive'}
-                  updating={update.isPending}
-                  selecting={isManaging}
-                  selected={selectedItems.has(bundleKey(bundle))}
-                  onSelect={() => toggleSelected(bundleKey(bundle))}
-                  onEdit={() => bundle.legacy && setEditing(bundle.photos[0])}
-                  onArchive={() =>
-                    bundle.legacy && update.mutate({ id: bundle.photos[0].id, update: { archived: true } })
-                  }
-                  onRestore={() =>
-                    update.mutate({
-                      id: bundle.photos[0].id,
-                      update: { archived: false },
-                    })
-                  }
-                  comparisonsByPhotoId={comparisonsByPhotoId}
-                />
-              ))}
-            </div>
-          </section>
-        ))}
-      </div> : null}
       {update.isError || remove.isError || removeBundle.isError ? (
         <AlbumError
           message={
@@ -301,31 +245,42 @@ export function PhotoRecordAlbum({ immersive = false }: { immersive?: boolean })
       />
     ) : null}
     {comparisonContestId && !pickerExistingComparison ? <AlbumComparisonPicker contestId={comparisonContestId} bundles={bundles.data ?? []} onClose={closeComparisonPicker} /> : null}
-    {view === 'active' && layout === 'story' && !isManaging ? <Button type="button" size="icon" className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-4 z-30 h-9 w-9 rounded-full shadow-lg md:bottom-6 md:right-6" onClick={() => setPhotoAddRequest({})} aria-label="사진 추가" title="사진 추가"><Plus className="h-4 w-4" /><span className="sr-only">사진 추가</span></Button> : null}
-    {view === 'archive' ? <Button type="button" className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-4 z-30 rounded-full shadow-lg md:bottom-6 md:right-6" onClick={() => setPhotoAddRequest({})}><ImagePlus className="h-4 w-4" />사진 추가</Button> : null}
+    {layout === 'story' && !isManaging && !isEmptyActiveStory ? <Button type="button" size="icon" className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] right-4 z-30 h-9 w-9 rounded-full shadow-lg md:bottom-6 md:right-6" onClick={() => setPhotoAddRequest({})} aria-label="사진 추가" title="사진 추가"><Plus className="h-4 w-4" /><span className="sr-only">사진 추가</span></Button> : null}
     {photoAddRequest ? <PhotoAddSheet initialLocation={photoAddRequest.initialLocation} onClose={() => setPhotoAddRequest(null)} onComplete={() => setPhotoAddRequest(null)} /> : null}
     </>
   )
 }
 
+function StoryEmptyState({ onAdd }: { onAdd: () => void }) {
+  return (
+    <div className="photo-record-story-surface relative flex min-h-[calc(100dvh-11rem)] items-center justify-center px-6 py-16 md:min-h-[34rem]">
+      <div className="relative z-10 flex max-w-xs flex-col items-center gap-3 text-center">
+        <span className="grid h-11 w-11 place-items-center rounded-full border border-primary/15 bg-background/80 text-primary shadow-sm backdrop-blur">
+          <Camera className="h-5 w-5" aria-hidden />
+        </span>
+        <div className="space-y-1">
+          <p className="text-sm font-medium">사진이 없어요.</p>
+          <p className="text-sm text-muted-foreground">사진을 추가해 주세요.</p>
+        </div>
+        <Button type="button" size="sm" onClick={onAdd}>
+          <ImagePlus className="h-4 w-4" />
+          사진 추가
+        </Button>
+      </div>
+    </div>
+  )
+}
+
 function AlbumHeaderV2({
-  view,
   layout,
-  isAdding,
   compact,
   isManaging,
-  onArchiveToggle,
   onLayoutChange,
-  onAddToggle,
   onManageToggle,
 }: {
-  view: AlbumView
   layout: AlbumLayout
-  isAdding: boolean
   compact: boolean
-  onArchiveToggle: () => void
   onLayoutChange: (layout: AlbumLayout) => void
-  onAddToggle: () => void
   isManaging: boolean
   onManageToggle: () => void
 }) {
@@ -333,29 +288,22 @@ function AlbumHeaderV2({
     <div className={compact ? 'absolute inset-x-3 top-3 z-20 flex items-center justify-between gap-2' : 'flex flex-wrap items-end justify-between gap-3'}>
       {compact ? <Button asChild type="button" variant="secondary" size="icon" className="rounded-full bg-background/90 shadow-sm backdrop-blur" aria-label="마이로 돌아가기"><Link to="/me"><ArrowLeft className="h-4 w-4" /></Link></Button> : <div>
         <h2 className="flex items-center gap-1.5 font-semibold">
-          <Camera className="h-4 w-4 text-primary" /> {view === 'archive' ? '보관함' : '내 앨범'}
+          <Camera className="h-4 w-4 text-primary" /> 내 앨범
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          {view === 'archive' ? '잠시 보관한 사진을 다시 꺼내거나 정리할 수 있어요.' : '사진을 시간의 흐름과 장소의 기억으로 살펴보세요.'}
+          사진을 시간의 흐름과 장소의 기억으로 살펴보세요.
         </p>
       </div>}
       <div className={`flex min-w-0 flex-nowrap items-center justify-end gap-2 ${compact ? 'rounded-full bg-background/90 p-1 shadow-sm backdrop-blur' : ''}`}>
-        {view === 'active' ? (
-          <div className="inline-flex rounded-full bg-muted p-1 text-sm" aria-label="앨범 보기 방식">
+        <div className="inline-flex rounded-full bg-muted p-1 text-sm" aria-label="앨범 보기 방식">
             <button type="button" onClick={() => onLayoutChange('story')} className={`rounded-full px-3 py-1.5 transition-colors ${layout === 'story' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'}`}>
               스토리
             </button>
             <button type="button" onClick={() => onLayoutChange('map')} className={`rounded-full px-3 py-1.5 transition-colors ${layout === 'map' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'}`}>
               <MapIcon className="mr-1 inline h-3.5 w-3.5" />맵
             </button>
-          </div>
-        ) : null}
-        <Button type="button" variant="outline" size="sm" onClick={onArchiveToggle}>
-          <Archive className="h-4 w-4" />
-          {view === 'archive' ? '앨범으로' : '보관함'}
-        </Button>
-        {view === 'active' && layout === 'story' ? <Button type="button" variant="outline" size="sm" onClick={onManageToggle}>{isManaging ? '완료' : '관리'}</Button> : null}
-        {view === 'active' && layout !== 'map' && layout !== 'story' ? <Button type="button" size="sm" onClick={onAddToggle}><ImagePlus className="h-4 w-4" />{isAdding ? '닫기' : '사진 추가'}</Button> : null}
+        </div>
+        {layout === 'story' ? <Button type="button" variant="outline" size="sm" onClick={onManageToggle}>{isManaging ? '완료' : '관리'}</Button> : null}
       </div>
     </div>
   )
@@ -666,7 +614,6 @@ function bulkDeleteResultMessage(deleted: number, conflicts: number, failures: n
   return parts.join(' · ')
 }
 
-type AlbumView = 'active' | 'archive'
 type AlbumLayout = 'story' | 'map'
 
 const unknownPlace = '장소 미상'

@@ -113,7 +113,7 @@ export default function HomePage() {
 
         {user ? <section className="flex flex-col gap-4 rounded-[1.75rem] bg-[#d9ebe4] px-5 py-8 sm:flex-row sm:items-end sm:justify-between sm:rounded-[2.25rem] sm:px-8 sm:py-10 lg:px-10">
           <div><p className="text-xs font-medium tracking-[0.18em] text-primary/70">MY SCENES</p><h2 className="mt-2 font-editorial text-2xl tracking-[-0.035em]">내가 남긴 장면</h2><p className="mt-1 text-sm text-muted-foreground">수상작과 나란히 놓아 본 나의 사진을 다시 꺼내보세요.</p></div>
-          <Link to="/compare" className="inline-flex items-center gap-1 text-sm font-medium underline-offset-4 hover:underline">내 사진 보기 <Images className="h-4 w-4" /></Link>
+          <Link to="/me/comparisons" className="inline-flex items-center gap-1 text-sm font-medium underline-offset-4 hover:underline">내 사진 보기 <Images className="h-4 w-4" /></Link>
         </section> : null}
       </div>
     </div>

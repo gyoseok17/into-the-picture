@@ -113,7 +113,7 @@ public class PhotoComparisonService {
 
     @Transactional(readOnly = true)
     public List<PublicComparisonDto> listPublic(Long contestId) {
-        return records.findAllByContestIdAndComparisonVisibilityAndArchivedAtIsNullOrderByContestLinkedAtDesc(
+        return records.findAllByContestIdAndComparisonVisibilityOrderByContestLinkedAtDesc(
                 contestId, ComparisonVisibility.PUBLIC)
             .stream()
             .map(record -> new PublicComparisonDto(record.getId(), publicFileUrl(contestId, record.getId()), cropDto(record), record.getContestLinkedAt()))
@@ -123,7 +123,7 @@ public class PhotoComparisonService {
     /** The lookup deliberately validates contest + visibility before any storage key is read. */
     @Transactional(readOnly = true)
     public PublicComparisonFile loadPublicFile(Long contestId, Long comparisonId) {
-        var record = records.findByIdAndContestIdAndComparisonVisibilityAndArchivedAtIsNull(
+        var record = records.findByIdAndContestIdAndComparisonVisibility(
                 comparisonId, contestId, ComparisonVisibility.PUBLIC)
             .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND));
         var photo = record.getUserPhoto();

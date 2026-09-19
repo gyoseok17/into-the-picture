@@ -152,7 +152,7 @@ class PhotoComparisonServiceTest {
         when(record.getId()).thenReturn(10L);
         when(record.getContestLinkedAt()).thenReturn(java.time.LocalDateTime.of(2026, 9, 12, 10, 0));
         when(record.getComparisonCrop()).thenReturn(new com.intothepicture.domain.comparison.entity.ComparisonCrop(1.5, 1.2, .1, -.2));
-        when(records.findAllByContestIdAndComparisonVisibilityAndArchivedAtIsNullOrderByContestLinkedAtDesc(94L, ComparisonVisibility.PUBLIC))
+        when(records.findAllByContestIdAndComparisonVisibilityOrderByContestLinkedAtDesc(94L, ComparisonVisibility.PUBLIC))
             .thenReturn(java.util.List.of(record));
 
         var result = service.listPublic(94L);
@@ -162,12 +162,12 @@ class PhotoComparisonServiceTest {
             assertThat(publicComparison.id()).isEqualTo(10L);
             assertThat(publicComparison.crop()).isEqualTo(new ComparisonCropDto(1.5, 1.2, .1, -.2));
         });
-        verify(records).findAllByContestIdAndComparisonVisibilityAndArchivedAtIsNullOrderByContestLinkedAtDesc(94L, ComparisonVisibility.PUBLIC);
+        verify(records).findAllByContestIdAndComparisonVisibilityOrderByContestLinkedAtDesc(94L, ComparisonVisibility.PUBLIC);
     }
 
     @Test
     void privateOrWrongContestPublicFileLookupNeverReadsStorage() throws java.io.IOException {
-        when(records.findByIdAndContestIdAndComparisonVisibilityAndArchivedAtIsNull(10L, 94L, ComparisonVisibility.PUBLIC))
+        when(records.findByIdAndContestIdAndComparisonVisibility(10L, 94L, ComparisonVisibility.PUBLIC))
             .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.loadPublicFile(94L, 10L)).isInstanceOf(BusinessException.class);
@@ -180,7 +180,7 @@ class PhotoComparisonServiceTest {
         var record = org.mockito.Mockito.mock(PhotoRecord.class);
         var photo = org.mockito.Mockito.mock(com.intothepicture.domain.userphoto.entity.UserPhoto.class);
         var resource = org.mockito.Mockito.mock(org.springframework.core.io.Resource.class);
-        when(records.findByIdAndContestIdAndComparisonVisibilityAndArchivedAtIsNull(10L, 94L, ComparisonVisibility.PUBLIC))
+        when(records.findByIdAndContestIdAndComparisonVisibility(10L, 94L, ComparisonVisibility.PUBLIC))
             .thenReturn(Optional.of(record));
         when(record.getUserPhoto()).thenReturn(photo);
         when(photo.getStorageKey()).thenReturn("owner-7/opaque-file.jpg");

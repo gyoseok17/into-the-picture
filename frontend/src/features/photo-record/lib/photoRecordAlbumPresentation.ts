@@ -1,7 +1,6 @@
 import { formatPhotoVisitPeriod } from './formatPhotoVisitPeriod'
 import type { PhotoRecordBundle, PhotoRecordDraft, PhotoRecordSort } from '../types'
 
-export type AlbumView = 'active' | 'archive'
 export type AlbumLayout = 'story' | 'map'
 
 export const UNKNOWN_DATE = '촬영일 미상'

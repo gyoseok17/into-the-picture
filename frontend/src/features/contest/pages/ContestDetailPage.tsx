@@ -95,7 +95,7 @@ export default function ContestDetailPage() {
               fit="contain"
               className="rounded-lg border bg-muted/40"
             />
-            {favoriteStatus.data?.favorite && existingComparison ? <div className="absolute bottom-3 right-3"><ContestComparisonEntry contestId={id} comparison={existingComparison} onOpen={() => setShowSavedComparison(true)} triggerRef={savedComparisonTriggerRef} /></div> : null}
+            {favoriteStatus.data?.favorite && existingComparison ? <div className="absolute bottom-3 right-3"><ContestComparisonEntry comparison={existingComparison} onOpen={() => setShowSavedComparison(true)} triggerRef={savedComparisonTriggerRef} /></div> : null}
           </div>
 
           <header className="space-y-2">
@@ -153,7 +153,11 @@ export default function ContestDetailPage() {
           ) : null}
 
           <Section title="위치">
-            <ContestMap name={detail.title} lat={detail.lat} lng={detail.lng} />
+            <ContestMap
+              destinationName={detail.location.trim() || detail.title}
+              lat={detail.lat}
+              lng={detail.lng}
+            />
           </Section>
 
           <CrowdSection

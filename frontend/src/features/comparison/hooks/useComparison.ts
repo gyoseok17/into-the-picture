@@ -7,9 +7,7 @@ import {
   fetchComparisons,
   fetchPublicContestComparisons,
   fetchUserPhotos,
-  replaceComparisonPhoto,
   updateComparisonVisibility,
-  uploadUserPhoto,
 } from '../api'
 
 export const useUserPhotos = () =>
@@ -32,18 +30,6 @@ function invalidateAlbumQueries(queryClient: ReturnType<typeof useQueryClient>) 
   void queryClient.invalidateQueries({ queryKey: ['photo-record-bundles'] })
   void queryClient.invalidateQueries({ queryKey: ['photo-record-map'] })
   void queryClient.invalidateQueries({ queryKey: ['photo-record-bundle-map'] })
-}
-
-export function useUploadUserPhoto() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: uploadUserPhoto,
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['user-photos'] })
-      invalidateAlbumQueries(queryClient)
-    },
-  })
 }
 
 export function useDeleteUserPhoto() {
@@ -79,20 +65,6 @@ export function useDeleteComparison() {
       void queryClient.invalidateQueries({ queryKey: ['public-contest-comparisons'] })
       void queryClient.invalidateQueries({ queryKey: ['user-photos'] })
       invalidateAlbumQueries(queryClient)
-    },
-  })
-}
-
-export function useReplaceComparisonPhoto() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: ({ id, userPhotoId, crop }: { id: number; userPhotoId: number; crop: import('../types').ComparisonCrop }) =>
-      replaceComparisonPhoto(id, userPhotoId, crop),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['comparisons'] })
-      void queryClient.invalidateQueries({ queryKey: ['user-photos'] })
-      void queryClient.invalidateQueries({ queryKey: ['public-contest-comparisons'] })
     },
   })
 }

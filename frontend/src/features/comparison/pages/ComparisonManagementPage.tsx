@@ -23,7 +23,7 @@ export default function ComparisonManagementPage() {
             <Eye className="h-5 w-5" aria-hidden />
           </span>
           <div>
-            <h1 className="text-xl font-semibold tracking-tight">공개 관리</h1>
+            <h1 className="text-xl font-semibold tracking-tight">비교 관리</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               수상작과 비교한 사진을 다른 사람에게 보여줄지 한눈에 관리하세요.
             </p>
