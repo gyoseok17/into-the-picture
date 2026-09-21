@@ -22,6 +22,7 @@ public record ContestDetailDto(
     String imageUrl,
     Double lat,
     Double lng,
+    String kakaoPlaceId,
     String mapRegionCode,
     String mapCityCode,
     String copyright,

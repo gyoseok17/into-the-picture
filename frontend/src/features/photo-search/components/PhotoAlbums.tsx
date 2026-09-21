@@ -5,6 +5,7 @@ import { AspectImage } from '@/components/AspectImage'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { useDocumentScrollLock } from '@/hooks/useDocumentScrollLock'
+import { useEscapeDismiss } from '@/hooks/useEscapeDismiss'
 import type { MobileGridColumns } from '@/features/display-preferences/hooks/useMobileGridColumns'
 import { mobileGridClassName } from '@/features/display-preferences/mobileGridClassName'
 import type { Photo } from '../types'
@@ -41,35 +42,37 @@ export function PhotoAlbumGrid({
   albums,
   onSearch,
   mobileColumns = 2,
+  layout = 'grid',
 }: {
   albums: PhotoAlbum[]
   onSearch?: (keyword: string) => void
   mobileColumns?: MobileGridColumns
+  layout?: 'grid' | 'strip'
 }) {
   const [selected, setSelected] = useState<PhotoAlbum | null>(null)
+  const isStrip = layout === 'strip'
 
   return (
     <>
       <div
-        className={mobileGridClassName(
-          mobileColumns,
-          'grid gap-3 sm:grid-cols-2 lg:grid-cols-3',
-        )}
+        className={isStrip
+          ? 'flex gap-2 overflow-x-auto overscroll-x-contain pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
+          : mobileGridClassName(mobileColumns, 'grid gap-3 sm:grid-cols-2 lg:grid-cols-3')}
       >
         {albums.map((album) => (
           <button
             key={album.key}
             type="button"
             onClick={() => setSelected(album)}
-            className="text-left"
+            className={isStrip ? 'w-36 shrink-0 text-left sm:w-40' : 'text-left'}
           >
             <Card className="h-full overflow-hidden transition-shadow hover:shadow-md">
-              <AspectImage src={album.cover.imageUrl ?? ''} alt={album.title} />
-              <div className="space-y-1 p-3">
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <AspectImage src={album.cover.imageUrl ?? ''} alt={album.title} ratioClassName={isStrip ? 'aspect-[4/3]' : undefined} />
+              <div className={isStrip ? 'space-y-0.5 p-2' : 'space-y-1 p-3'}>
+                {!isStrip ? <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Images className="h-3.5 w-3.5" />
                   사진 {album.photos.length}장
-                </div>
+                </div> : null}
                 <h3 className="line-clamp-1 text-sm font-semibold">
                   {album.title}
                 </h3>
@@ -111,6 +114,7 @@ function PhotoAlbumDetail({
   const keywords = [...new Set(album.photos.flatMap((photo) => photo.keywords))]
   const multiplePhotos = album.photos.length > 1
   useDocumentScrollLock()
+  useEscapeDismiss(onClose)
 
   return (
     <div

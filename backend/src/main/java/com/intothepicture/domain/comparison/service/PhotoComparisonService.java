@@ -73,6 +73,7 @@ public class PhotoComparisonService {
 
     @Transactional
     public ComparisonDto replacePhoto(Long userId, Long comparisonId, Long replacementRecordId, ComparisonCropDto crop) {
+        requireId(replacementRecordId, "userPhotoId");
         var current = photos.findOwnedRecord(userId, comparisonId);
         if (current.getContest() == null) throw new BusinessException(ErrorCode.NOT_FOUND);
         var replacement = photos.findOwnedRecord(userId, replacementRecordId);
@@ -80,6 +81,9 @@ public class PhotoComparisonService {
             throw new BusinessException(ErrorCode.CONFLICT, "이미 사진 놓기에 사용 중인 사진입니다.");
         }
         var contest = current.getContest();
+        if (records.existsByUserIdAndContestIdAndIdNot(userId, contest.getId(), current.getId())) {
+            throw new BusinessException(ErrorCode.CONFLICT, "같은 수상작에 연결된 다른 사진이 이미 있습니다.");
+        }
         var visibility = current.getComparisonVisibility();
         current.detachContest();
         replacement.attachContest(contest);
@@ -105,6 +109,7 @@ public class PhotoComparisonService {
 
     @Transactional
     public ComparisonDto changeCrop(Long userId, Long comparisonId, ComparisonCropDto crop) {
+        if (crop == null) throw new BusinessException(ErrorCode.INVALID_REQUEST, "crop is required.");
         var record = photos.findOwnedRecord(userId, comparisonId);
         if (record.getContest() == null) throw new BusinessException(ErrorCode.NOT_FOUND);
         applyCrop(record, crop);
@@ -164,6 +169,10 @@ public class PhotoComparisonService {
             throw new BusinessException(ErrorCode.INVALID_REQUEST, field + " is invalid.");
         }
         return value;
+    }
+
+    private void requireId(Long value, String field) {
+        if (value == null) throw new BusinessException(ErrorCode.INVALID_REQUEST, field + " is required.");
     }
 
     private ComparisonCropDto cropDto(com.intothepicture.domain.photorecord.entity.PhotoRecord record) {

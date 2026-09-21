@@ -6,6 +6,8 @@ import com.intothepicture.domain.userphoto.dto.PhotoRecordMapPinDto;
 import com.intothepicture.domain.userphoto.dto.MapLocationOptionDto;
 import com.intothepicture.domain.userphoto.dto.UserPhotoDto;
 import com.intothepicture.domain.userphoto.service.UserPhotoService;
+import com.intothepicture.domain.userphoto.service.UserPhotoUploadService;
+import com.intothepicture.domain.userphoto.service.PhotoRecordMapService;
 import com.intothepicture.global.security.JwtService.JwtPrincipal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,8 +32,14 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/me/photos")
 public class UserPhotoController {
     private final UserPhotoService service;
+    private final UserPhotoUploadService uploads;
+    private final PhotoRecordMapService mapService;
 
-    public UserPhotoController(UserPhotoService service) { this.service = service; }
+    public UserPhotoController(UserPhotoService service, UserPhotoUploadService uploads, PhotoRecordMapService mapService) {
+        this.service = service;
+        this.uploads = uploads;
+        this.mapService = mapService;
+    }
 
     @GetMapping
     public List<UserPhotoDto> list(@AuthenticationPrincipal JwtPrincipal principal) {
@@ -40,18 +48,18 @@ public class UserPhotoController {
 
     @GetMapping("/map")
     public List<PhotoRecordMapPinDto> map(@AuthenticationPrincipal JwtPrincipal principal) {
-        return service.map(principal.userId());
+        return mapService.map(principal.userId());
     }
 
     @GetMapping("/map/locations")
     public List<MapLocationOptionDto> mapLocations(@AuthenticationPrincipal JwtPrincipal principal) {
-        return service.mapLocations();
+        return mapService.locations();
     }
 
     @PutMapping("/map/representative")
     public ResponseEntity<Void> setMapRepresentative(@AuthenticationPrincipal JwtPrincipal principal,
                                                        @RequestBody SetMapLocationRepresentativeRequest request) {
-        service.setMapRepresentative(principal.userId(), request.photoRecordId());
+        mapService.setRepresentative(principal.userId(), request.photoRecordId());
         return ResponseEntity.noContent().build();
     }
 
@@ -72,7 +80,7 @@ public class UserPhotoController {
                                @RequestParam(required = false) String mapRegionCode,
                                @RequestParam(required = false) String mapCityCode,
                                @RequestParam(required = false) String memo) {
-        return service.upload(principal.userId(), file, takenAt, placeName, mapRegionCode, mapCityCode, memo);
+        return uploads.upload(principal.userId(), file, takenAt, placeName, mapRegionCode, mapCityCode, memo);
     }
 
     @PatchMapping("/{photoId}")

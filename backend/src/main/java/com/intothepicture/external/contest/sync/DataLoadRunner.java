@@ -20,24 +20,29 @@ public class DataLoadRunner implements CommandLineRunner {
 
     private final ContestSyncJob contestSyncJob;
     private final GeocodeBackfillJob geocodeBackfillJob;
+    private final KakaoPlaceBackfillJob kakaoPlaceBackfillJob;
     private final CrowdMatchBackfillJob crowdMatchBackfillJob;
 
     public DataLoadRunner(ContestSyncJob contestSyncJob, GeocodeBackfillJob geocodeBackfillJob,
+                          KakaoPlaceBackfillJob kakaoPlaceBackfillJob,
                           CrowdMatchBackfillJob crowdMatchBackfillJob) {
         this.contestSyncJob = contestSyncJob;
         this.geocodeBackfillJob = geocodeBackfillJob;
+        this.kakaoPlaceBackfillJob = kakaoPlaceBackfillJob;
         this.crowdMatchBackfillJob = crowdMatchBackfillJob;
     }
 
     @Override
     public void run(String... args) {
-        log.info("===== 데이터 적재 시작 (sync → geocode → crowd-match) =====");
+        log.info("===== 데이터 적재 시작 (sync → geocode → kakao-place → crowd-match) =====");
         ContestSyncResult sync = contestSyncJob.sync();
         GeocodeBackfillResult geocode = geocodeBackfillJob.backfill();
+        KakaoPlaceBackfillResult kakaoPlace = kakaoPlaceBackfillJob.backfill();
         CrowdMatchResult crowd = crowdMatchBackfillJob.backfill();
         log.info("===== 데이터 적재 완료 =====");
         log.info("  공모전 sync   : {}", sync);
         log.info("  지오코딩 보강 : {}", geocode);
+        log.info("  카카오 장소 ID: {}", kakaoPlace);
         log.info("  집중률 매칭   : {}", crowd);
     }
 }

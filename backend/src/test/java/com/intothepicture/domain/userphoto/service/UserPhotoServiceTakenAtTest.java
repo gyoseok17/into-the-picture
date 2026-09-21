@@ -6,10 +6,9 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.intothepicture.domain.contest.port.GeocodingProvider;
 import com.intothepicture.domain.photorecord.location.MapLocationCatalog;
+import com.intothepicture.domain.photorecord.location.MapLocationInputResolver;
 import com.intothepicture.domain.photorecord.entity.TakenAtSource;
-import com.intothepicture.domain.photorecord.repository.PhotoMapLocationRepresentativeRepository;
 import com.intothepicture.domain.photorecord.repository.PhotoRecordRepository;
 import com.intothepicture.domain.user.repository.UserRepository;
 import com.intothepicture.domain.userphoto.metadata.ImageTakenAtExtractor;
@@ -22,18 +21,17 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockMultipartFile;
 
-class UserPhotoServiceTakenAtTest {
+class UserPhotoUploadServiceTakenAtTest {
     private final ImageTakenAtExtractor extractor = org.mockito.Mockito.mock(ImageTakenAtExtractor.class);
-    private final UserPhotoService service = new UserPhotoService(
+    private final UserPhotoUploadService service = new UserPhotoUploadService(
         org.mockito.Mockito.mock(UserPhotoRepository.class),
         org.mockito.Mockito.mock(PhotoRecordRepository.class),
         org.mockito.Mockito.mock(UserRepository.class),
         org.mockito.Mockito.mock(FileStorage.class),
         org.mockito.Mockito.mock(ImageUploadValidator.class),
         extractor,
-        org.mockito.Mockito.mock(GeocodingProvider.class),
-        new MapLocationCatalog(),
-        org.mockito.Mockito.mock(PhotoMapLocationRepresentativeRepository.class));
+        new MapLocationInputResolver(new MapLocationCatalog()),
+        org.mockito.Mockito.mock(UserPhotoService.class));
 
     private final MockMultipartFile file = new MockMultipartFile("file", "photo.jpg", "image/jpeg", new byte[] {1});
 

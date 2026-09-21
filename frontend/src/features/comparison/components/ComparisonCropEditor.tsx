@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState, type ReactNode } from 'react'
 import { Move, RotateCcw, ZoomIn } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -13,6 +13,8 @@ interface ComparisonCropEditorProps {
   onCancel: () => void
   onConfirm: (crop: ComparisonCrop) => void
   pending?: boolean
+  overlayClassName?: string
+  actions?: ReactNode
 }
 
 /** Edits only a comparison presentation crop; the original album photo is never altered. */
@@ -24,6 +26,8 @@ export function ComparisonCropEditor({
   onCancel,
   onConfirm,
   pending = false,
+  overlayClassName = 'z-[90]',
+  actions,
 }: ComparisonCropEditorProps) {
   const contestAspectRatio = useImageAspectRatio(contestImageUrl)
   const photoAspectRatio = useImageAspectRatio(photoUrl)
@@ -83,7 +87,7 @@ export function ComparisonCropEditor({
   }
 
   return (
-    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/55 p-4" onMouseDown={onCancel}>
+    <div className={`fixed inset-0 ${overlayClassName} flex items-center justify-center bg-black/55 p-4`} onMouseDown={onCancel}>
       <section
         role="dialog"
         aria-modal="true"
@@ -139,6 +143,8 @@ export function ComparisonCropEditor({
           </label>
           <p className="flex items-center gap-2 text-xs text-muted-foreground"><Move className="h-3.5 w-3.5" aria-hidden />사진을 드래그해 위치를 조절하세요.</p>
         </div>
+
+        {actions ? <div className="mt-4 flex flex-wrap gap-2 border-t pt-4">{actions}</div> : null}
 
         <div className="mt-5 flex flex-wrap justify-between gap-2">
           <Button type="button" variant="ghost" size="sm" disabled={pending} onClick={reset}>

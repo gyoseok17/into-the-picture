@@ -2,6 +2,7 @@ package com.intothepicture.domain.photorecord.repository;
 
 import com.intothepicture.domain.photorecord.entity.PhotoRecord;
 import com.intothepicture.domain.comparison.entity.ComparisonVisibility;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,6 +13,7 @@ public interface PhotoRecordRepository extends JpaRepository<PhotoRecord, Long> 
     List<PhotoRecord> findAllByUserIdOrderByCreatedAtDesc(Long userId);
     List<PhotoRecord> findAllByUserIdAndContestIsNotNullOrderByContestLinkedAtDesc(Long userId);
     boolean existsByUserIdAndContestId(Long userId, Long contestId);
+    boolean existsByUserIdAndContestIdAndIdNot(Long userId, Long contestId, Long id);
     Optional<PhotoRecord> findByIdAndUserId(Long id, Long userId);
     boolean existsByUserPhotoId(Long userPhotoId);
     List<PhotoRecord> findAllByContestIdAndComparisonVisibilityOrderByContestLinkedAtDesc(
@@ -19,6 +21,7 @@ public interface PhotoRecordRepository extends JpaRepository<PhotoRecord, Long> 
     Optional<PhotoRecord> findByIdAndContestIdAndComparisonVisibility(
         Long id, Long contestId, ComparisonVisibility comparisonVisibility);
     List<PhotoRecord> findAllByBundleIdOrderByCreatedAtAsc(Long bundleId);
+    List<PhotoRecord> findAllByBundleIdInOrderByBundleIdAscCreatedAtAsc(Collection<Long> bundleIds);
     List<PhotoRecord> findAllByUserIdAndBundleIsNullOrderByCreatedAtDesc(Long userId);
 
     @Query("""

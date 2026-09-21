@@ -1,6 +1,7 @@
 package com.intothepicture.external.contest.sync;
 
 import com.intothepicture.domain.contest.entity.ContestWork;
+import com.intothepicture.domain.contest.location.ContestLocationAvailability;
 import com.intothepicture.domain.contest.port.Coordinate;
 import com.intothepicture.domain.contest.port.GeocodingProvider;
 import com.intothepicture.domain.contest.repository.ContestRepository;
@@ -31,6 +32,7 @@ public class GeocodeBackfillJob {
 
     public GeocodeBackfillResult backfill() {
         List<ContestWork> targets = contestRepository.findAll().stream()
+            .filter(work -> !ContestLocationAvailability.hasNoReliableLocation(work.getId()))
             .filter(work -> !work.hasCoordinates())
             .toList();
         log.info("지오코딩 보강 시작 — 좌표 없는 {}건", targets.size());

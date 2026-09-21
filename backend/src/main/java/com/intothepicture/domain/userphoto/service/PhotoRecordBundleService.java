@@ -2,7 +2,7 @@ package com.intothepicture.domain.userphoto.service;
 
 import com.intothepicture.domain.photorecord.entity.PhotoRecord;
 import com.intothepicture.domain.photorecord.entity.PhotoRecordBundle;
-import com.intothepicture.domain.photorecord.location.MapLocationCatalog;
+import com.intothepicture.domain.photorecord.location.MapLocationInputResolver;
 import com.intothepicture.domain.photorecord.repository.PhotoRecordBundleRepository;
 import com.intothepicture.domain.photorecord.repository.PhotoRecordRepository;
 import com.intothepicture.domain.user.repository.UserRepository;
@@ -15,7 +15,9 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,15 +35,20 @@ public class PhotoRecordBundleService {
     private final PhotoRecordRepository records;
     private final UserRepository users;
     private final UserPhotoService photos;
-    private final MapLocationCatalog mapLocations;
+    private final UserPhotoUploadService uploads;
+    private final PhotoRecordMapService mapService;
+    private final MapLocationInputResolver mapLocationInputResolver;
 
     public PhotoRecordBundleService(PhotoRecordBundleRepository bundles, PhotoRecordRepository records,
-                                    UserRepository users, UserPhotoService photos, MapLocationCatalog mapLocations) {
+                                    UserRepository users, UserPhotoService photos, UserPhotoUploadService uploads,
+                                    PhotoRecordMapService mapService, MapLocationInputResolver mapLocationInputResolver) {
         this.bundles = bundles;
         this.records = records;
         this.users = users;
         this.photos = photos;
-        this.mapLocations = mapLocations;
+        this.uploads = uploads;
+        this.mapService = mapService;
+        this.mapLocationInputResolver = mapLocationInputResolver;
     }
 
     @Transactional
@@ -56,11 +63,11 @@ public class PhotoRecordBundleService {
         // Validate every file before creating a bundle or storing any physical file.
         // EXIF is primary per photo; a matching manual date and the trip start
         // are progressively weaker fallbacks.
-        var resolvedTakenAts = new ArrayList<UserPhotoService.TakenAtResolution>();
+        var resolvedTakenAts = new ArrayList<UserPhotoUploadService.TakenAtResolution>();
         for (int index = 0; index < files.size(); index++) {
-            resolvedTakenAts.add(photos.resolveBundleTakenAt(files.get(index), parsedManualTakenAts.get(index), takenAt));
+            resolvedTakenAts.add(uploads.resolveBundleTakenAt(files.get(index), parsedManualTakenAts.get(index), takenAt));
         }
-        var location = mapLocations.resolve(normalize(mapRegionCode, 32, "map region code"), normalize(mapCityCode, 48, "map city code"));
+        var location = mapLocationInputResolver.resolve(mapRegionCode, mapCityCode);
         var bundle = bundles.save(PhotoRecordBundle.builder()
             .user(users.findById(userId).orElseThrow(() -> new BusinessException(ErrorCode.UNAUTHORIZED)))
             .takenAt(takenAt)
@@ -71,16 +78,17 @@ public class PhotoRecordBundleService {
             .memo(normalize(memo, 500, "memo"))
             .build());
 
-        var uploadedRecordIds = new ArrayList<Long>();
+        var uploadedStorageKeys = new ArrayList<String>();
         try {
             for (int index = 0; index < files.size(); index++) {
                 MultipartFile file = files.get(index);
-                uploadedRecordIds.add(photos.uploadToBundle(userId, file, resolvedTakenAts.get(index), bundle.getPlaceName(),
-                    bundle.getMapRegionCode(), bundle.getMapCityCode(), bundle.getMemo(), bundle).id());
+                uploadedStorageKeys.add(uploads.uploadToBundle(userId, file, resolvedTakenAts.get(index), bundle.getPlaceName(),
+                    bundle.getMapRegionCode(), bundle.getMapCityCode(), bundle.getMemo(), bundle).storageKey());
             }
         } catch (RuntimeException exception) {
-            // The database transaction rolls back; delete already persisted physical files as compensation.
-            uploadedRecordIds.forEach(id -> photos.deleteIncludingComparison(userId, id));
+            // The database transaction rolls back, so after-commit deletion would not run.
+            // Persisted source files need explicit rollback compensation instead.
+            uploadedStorageKeys.forEach(storageKey -> uploads.deleteStoredFileForRollback(storageKey, exception));
             throw exception;
         }
         return dto(bundle);
@@ -90,7 +98,12 @@ public class PhotoRecordBundleService {
     public List<PhotoRecordBundleDto> list(Long userId) {
         var result = new ArrayList<PhotoRecordBundleDto>();
         var bundleList = bundles.findAllByUserIdOrderByCreatedAtDesc(userId);
-        bundleList.stream().map(this::dto).forEach(result::add);
+        Map<Long, List<PhotoRecord>> recordsByBundleId = new LinkedHashMap<>();
+        if (!bundleList.isEmpty()) {
+            records.findAllByBundleIdInOrderByBundleIdAscCreatedAtAsc(bundleList.stream().map(PhotoRecordBundle::getId).toList())
+                .forEach(record -> recordsByBundleId.computeIfAbsent(record.getBundle().getId(), ignored -> new ArrayList<>()).add(record));
+        }
+        bundleList.stream().map(bundle -> dto(bundle, recordsByBundleId.getOrDefault(bundle.getId(), List.of()))).forEach(result::add);
         var legacy = records.findAllByUserIdAndBundleIsNullOrderByCreatedAtDesc(userId);
         legacy.stream().map(this::legacyDto).forEach(result::add);
         result.sort(Comparator.comparing(this::sortAt).reversed());
@@ -99,7 +112,7 @@ public class PhotoRecordBundleService {
 
     @Transactional
     public List<PhotoRecordBundleMapPinDto> bundleMap(Long userId) {
-        return photos.bundleMap(userId);
+        return mapService.bundleMap(userId);
     }
 
     @Transactional
@@ -115,8 +128,12 @@ public class PhotoRecordBundleService {
     }
 
     public PhotoRecordBundleDto dto(PhotoRecordBundle bundle) {
+        return dto(bundle, records.findAllByBundleIdOrderByCreatedAtAsc(bundle.getId()));
+    }
+
+    private PhotoRecordBundleDto dto(PhotoRecordBundle bundle, List<PhotoRecord> bundleRecords) {
         return new PhotoRecordBundleDto(bundle.getId(), false,
-            records.findAllByBundleIdOrderByCreatedAtAsc(bundle.getId()).stream().map(photos::dto).toList(),
+            bundleRecords.stream().map(photos::dto).toList(),
             bundle.getTakenAt(), bundle.getEndedAt(), bundle.getPlaceName(), bundle.getMapRegionCode(), bundle.getMapCityCode(), bundle.getMemo(),
             bundle.getCreatedAt());
     }

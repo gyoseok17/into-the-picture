@@ -10,6 +10,11 @@ import { extractImageTakenAt } from '@/features/photo-record/lib/extractJpegTake
 import { formatPhotoVisitPeriod } from '@/features/photo-record/lib/formatPhotoVisitPeriod'
 import type { PhotoRecordBundle } from '@/features/photo-record/types'
 import { getComparisonPhotoDisplay } from '../lib/comparisonPhotoDisplay'
+import {
+  filterBundlesForComparisonTarget,
+  hasComparisonTargetLocation,
+  type ComparisonTargetLocation,
+} from '../lib/comparisonPhotoLocation'
 import type { UserPhoto } from '../types'
 
 interface UserPhotoUploadInput {
@@ -39,9 +44,12 @@ export function ComparisonPhotoPickerDialog({
   loading,
   uploadPending,
   selectedId,
+  targetLocation,
   onClose,
   onSelect,
   onUpload,
+  onAddPhoto,
+  overlayClassName = 'z-[70]',
 }: {
   photos: UserPhoto[]
   /** Existing active-album data from the caller. When omitted, the dialog loads it on demand. */
@@ -51,9 +59,15 @@ export function ComparisonPhotoPickerDialog({
   loading: boolean
   uploadPending: boolean
   selectedId: number
+  /** When opened for a contest, only its verified map location is selectable. */
+  targetLocation?: ComparisonTargetLocation
   onClose: () => void
   onSelect: (id: number) => void
   onUpload: (input: UserPhotoUploadInput) => void
+  /** Opens the album upload flow when this contest location has no selectable photos. */
+  onAddPhoto?: () => void
+  /** Lets a nested edit flow render above an already-open result dialog. */
+  overlayClassName?: string
 }) {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [step, setStep] = useState<PickerStep>('start')
@@ -65,8 +79,11 @@ export function ComparisonPhotoPickerDialog({
   const unavailableIds = unavailablePhotoIds ?? new Set<number>()
   const selectedPhoto = photos.find((photo) => photo.id === pickedId) ?? null
   const selectableBundles = useMemo(
-    () => getSelectableBundles(providedBundles ?? bundlesQuery.data ?? [], photos),
-    [bundlesQuery.data, photos, providedBundles],
+    () => getSelectableBundles(
+      filterBundlesForComparisonTarget(providedBundles ?? bundlesQuery.data ?? [], targetLocation),
+      photos,
+    ),
+    [bundlesQuery.data, photos, providedBundles, targetLocation],
   )
   const pickedBundle = selectableBundles.find((item) => item.key === pickedBundleKey) ?? null
 
@@ -97,7 +114,10 @@ export function ComparisonPhotoPickerDialog({
 
   function confirmUpload(): void {
     if (!pendingUpload || !pendingUpload.takenAt.trim() || uploadPending) return
-    onUpload({ file: pendingUpload.file, takenAt: toTakenAtStart(pendingUpload.takenAt) })
+    onUpload({
+      file: pendingUpload.file,
+      takenAt: toTakenAtStart(pendingUpload.takenAt),
+    })
   }
 
   function confirmSelection(): void {
@@ -110,7 +130,7 @@ export function ComparisonPhotoPickerDialog({
       role="dialog"
       aria-modal
       aria-label="내 사진 고르기"
-      className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-4"
+      className={`fixed inset-0 ${overlayClassName} flex items-center justify-center bg-black/50 p-4`}
       onClick={onClose}
     >
       <Card className="w-full max-w-lg overflow-hidden p-0 shadow-xl" onClick={(event) => event.stopPropagation()}>
@@ -154,7 +174,10 @@ export function ComparisonPhotoPickerDialog({
               bundles={selectableBundles}
               loading={loading || (!usesProvidedBundles && bundlesQuery.isLoading)}
               error={!usesProvidedBundles && bundlesQuery.isError}
+              isLocationFiltered={hasComparisonTargetLocation(targetLocation)}
               onRetry={() => void bundlesQuery.refetch()}
+              onChooseNewPhoto={() => fileInputRef.current?.click()}
+              onAddPhoto={onAddPhoto}
               onPick={(bundle) => {
                 setPickedBundleKey(bundle.key)
                 setPickedId(selectedId || 0)
@@ -249,13 +272,19 @@ function BundleSelection({
   bundles,
   loading,
   error,
+  isLocationFiltered,
   onRetry,
+  onChooseNewPhoto,
+  onAddPhoto,
   onPick,
 }: {
   bundles: SelectableBundle[]
   loading: boolean
   error: boolean
+  isLocationFiltered: boolean
   onRetry: () => void
+  onChooseNewPhoto: () => void
+  onAddPhoto?: () => void
   onPick: (bundle: SelectableBundle) => void
 }) {
   return (
@@ -263,7 +292,18 @@ function BundleSelection({
       {loading ? <PhotoPickerSkeleton /> : null}
       {!loading && error ? <div className="py-8 text-center"><p className="text-sm text-muted-foreground">기록 묶음을 불러오지 못했어요.</p><Button type="button" variant="outline" size="sm" className="mt-3" onClick={onRetry}>다시 시도</Button></div> : null}
       {!loading && !error ? <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">{bundles.map((item) => <BundlePickerItem key={item.key} item={item} onPick={onPick} />)}</div> : null}
-      {!loading && !error && !bundles.length ? <p className="py-8 text-center text-sm text-muted-foreground">앨범에 고를 사진이 없어요.</p> : null}
+      {!loading && !error && !bundles.length ? (
+        <div className="py-8 text-center">
+          <p className="text-sm text-muted-foreground">
+            {isLocationFiltered ? '이 지역에 기록한 사진이 없어요.' : '앨범에 고를 사진이 없어요.'}
+          </p>
+          {isLocationFiltered ? (
+            <Button type="button" variant="outline" size="sm" className="mt-3" onClick={onAddPhoto ?? onChooseNewPhoto}>
+              새 사진 추가
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
     </div>
   )
 }

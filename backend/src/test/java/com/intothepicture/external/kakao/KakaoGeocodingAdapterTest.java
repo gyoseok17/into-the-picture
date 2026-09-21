@@ -6,6 +6,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.intothepicture.domain.contest.port.Coordinate;
+import com.intothepicture.domain.contest.port.PlaceReference;
 import com.intothepicture.global.exception.ErrorCode;
 import com.intothepicture.global.exception.ExternalApiException;
 import java.util.Optional;
@@ -85,5 +86,23 @@ class KakaoGeocodingAdapterTest {
     void blankInput() {
         assertThat(adapter().geocode("  ")).isEmpty();
         verify(kakaoLocalClient, never()).searchKeyword(org.mockito.ArgumentMatchers.anyString());
+    }
+
+    @Test
+    void returnsAStablePlaceReferenceOnlyForKeywordResultsWithAnId() {
+        when(kakaoLocalClient.searchKeyword("가야산국립공원"))
+            .thenReturn(Optional.of(new KakaoPlace("18577297", "가야산국립공원", 35.80, 128.11)));
+
+        assertThat(adapter().findPlace(LOCATION)).contains(new PlaceReference("18577297", 35.80, 128.11));
+        verify(kakaoLocalClient, never()).searchAddress(org.mockito.ArgumentMatchers.anyString());
+    }
+
+    @Test
+    void doesNotTurnAnAddressFallbackIntoAPlaceIdentity() {
+        when(kakaoLocalClient.searchKeyword("가야산국립공원")).thenReturn(Optional.empty());
+        when(kakaoLocalClient.searchKeyword(LOCATION)).thenReturn(Optional.empty());
+
+        assertThat(adapter().findPlace(LOCATION)).isEmpty();
+        verify(kakaoLocalClient, never()).searchAddress(org.mockito.ArgumentMatchers.anyString());
     }
 }

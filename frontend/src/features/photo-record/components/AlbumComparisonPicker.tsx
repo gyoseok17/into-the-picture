@@ -13,17 +13,19 @@ import {
 } from '@/features/comparison/hooks/useComparison'
 import { useContestDetail } from '@/features/contest/hooks/useContestDetail'
 import { useUploadPhotoRecord } from '../hooks/usePhotoRecords'
-import type { PhotoRecord, PhotoRecordBundle } from '../types'
+import type { PhotoRecord, PhotoRecordBundle, PhotoRecordDraft } from '../types'
 import type { ComparisonCrop } from '@/features/comparison/types'
 
 export function AlbumComparisonPicker({
   contestId,
   bundles,
   onClose,
+  onAddPhoto,
 }: {
   contestId: number
   bundles: PhotoRecordBundle[]
   onClose: () => void
+  onAddPhoto: (initialLocation: Pick<PhotoRecordDraft, 'mapRegionCode' | 'mapCityCode'>) => void
 }) {
   const [selectedPhoto, setSelectedPhoto] = useState<PhotoRecord | null>(null)
   const [isPhotoPickerOpen, setIsPhotoPickerOpen] = useState(true)
@@ -119,12 +121,20 @@ export function AlbumComparisonPicker({
                 loading={false}
                 uploadPending={upload.isPending || create.isPending}
                 selectedId={selectedPhoto?.id ?? 0}
+                targetLocation={{
+                  regionCode: contest.data?.mapRegionCode,
+                  cityCode: contest.data?.mapCityCode,
+                }}
                 onClose={onClose}
                 onSelect={(photoId) => {
                   selectPhoto(photoId)
                   setIsPhotoPickerOpen(false)
                 }}
                 onUpload={uploadAndSelect}
+                onAddPhoto={() => onAddPhoto({
+                  mapRegionCode: contest.data?.mapRegionCode ?? null,
+                  mapCityCode: contest.data?.mapCityCode ?? null,
+                })}
               />
             ) : null}
           </>

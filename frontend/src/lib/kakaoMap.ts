@@ -76,6 +76,7 @@ export function loadKakaoMaps(): Promise<void> {
   return loadPromise
 }
 
-export function buildKakaoDirectionsUrl(name: string, lat: number, lng: number): string {
-  return `https://map.kakao.com/link/to/${encodeURIComponent(name)},${lat},${lng}`
+/** Opens Kakao Map directions for a backend-verified keyword place-search ID. */
+export function buildKakaoDirectionsUrl(placeId: string): string {
+  return `https://map.kakao.com/link/to/${encodeURIComponent(placeId)}`
 }

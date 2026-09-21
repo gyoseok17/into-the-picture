@@ -6,20 +6,21 @@ import { isKakaoMapEnabled } from '@/lib/env'
 import { buildKakaoDirectionsUrl, loadKakaoMaps } from '@/lib/kakaoMap'
 
 interface ContestMapProps {
-  destinationName: string
+  kakaoPlaceId: string | null
   lat: number | null
   lng: number | null
 }
 
 // 카카오 지도(JS SDK) 마커 + 길안내. 키 미설정/좌표 null이면 graceful 처리(앱 안 죽게).
-export function ContestMap({ destinationName, lat, lng }: ContestMapProps) {
+export function ContestMap({ kakaoPlaceId, lat, lng }: ContestMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const [mapFailed, setMapFailed] = useState(false)
 
   const hasCoords = lat != null && lng != null
   const canRenderMap = isKakaoMapEnabled && hasCoords && !mapFailed
-  const directionsUrl =
-    lat != null && lng != null ? buildKakaoDirectionsUrl(destinationName, lat, lng) : null
+  const directionsUrl = kakaoPlaceId?.trim()
+    ? buildKakaoDirectionsUrl(kakaoPlaceId)
+    : null
 
   useEffect(() => {
     if (!isKakaoMapEnabled || lat == null || lng == null) return
@@ -52,10 +53,10 @@ export function ContestMap({ destinationName, lat, lng }: ContestMapProps) {
       {canRenderMap ? (
         <div
           ref={containerRef}
-          className="aspect-[16/10] w-full overflow-hidden rounded-lg border"
+          className="mx-auto aspect-[16/8] w-full max-w-2xl overflow-hidden rounded-lg border"
         />
       ) : (
-        <MapPlaceholder reason={hasCoords ? '지도 준비중' : '위치 정보 준비중'} />
+        <MapPlaceholder reason={hasCoords ? '지도 준비중' : '정확한 위치 정보를 알 수 없어요.'} />
       )}
 
       {directionsUrl ? (
@@ -71,7 +72,7 @@ export function ContestMap({ destinationName, lat, lng }: ContestMapProps) {
 
 function MapPlaceholder({ reason }: { reason: string }) {
   return (
-    <div className="flex aspect-[16/10] w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed bg-muted/40 text-muted-foreground">
+    <div className="mx-auto flex aspect-[16/8] w-full max-w-2xl flex-col items-center justify-center gap-2 rounded-lg border border-dashed bg-muted/40 text-muted-foreground">
       <MapPin className="h-6 w-6" />
       <p className="text-sm">{reason}</p>
     </div>

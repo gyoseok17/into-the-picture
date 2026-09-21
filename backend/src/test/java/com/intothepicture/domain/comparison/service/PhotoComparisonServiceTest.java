@@ -93,6 +93,30 @@ class PhotoComparisonServiceTest {
     }
 
     @Test
+    void contestAttachmentFillsOnlyAnUnlocatedPhotoRecordFromCuratedContestCodes() {
+        var unlocated = com.intothepicture.domain.photorecord.entity.PhotoRecord.builder()
+            .user(org.mockito.Mockito.mock(com.intothepicture.domain.user.entity.User.class))
+            .userPhoto(org.mockito.Mockito.mock(com.intothepicture.domain.userphoto.entity.UserPhoto.class))
+            .build();
+        var alreadyLocated = com.intothepicture.domain.photorecord.entity.PhotoRecord.builder()
+            .user(org.mockito.Mockito.mock(com.intothepicture.domain.user.entity.User.class))
+            .userPhoto(org.mockito.Mockito.mock(com.intothepicture.domain.userphoto.entity.UserPhoto.class))
+            .mapRegionCode("JEJU").mapCityCode("SEOGWIPO")
+            .build();
+        var contest = contest(94L);
+        when(contest.getMapRegionCode()).thenReturn("GYEONGSANG");
+        when(contest.getMapCityCode()).thenReturn("HAPCHEON");
+
+        unlocated.attachContest(contest);
+        alreadyLocated.attachContest(contest);
+
+        assertThat(unlocated.getMapRegionCode()).isEqualTo("GYEONGSANG");
+        assertThat(unlocated.getMapCityCode()).isEqualTo("HAPCHEON");
+        assertThat(alreadyLocated.getMapRegionCode()).isEqualTo("JEJU");
+        assertThat(alreadyLocated.getMapCityCode()).isEqualTo("SEOGWIPO");
+    }
+
+    @Test
     void ownerCanChangeComparisonVisibility() {
         var record = org.mockito.Mockito.mock(PhotoRecord.class);
         var contest = contest(94L);
@@ -134,6 +158,15 @@ class PhotoComparisonServiceTest {
         verify(record, never()).changeComparisonCrop(org.mockito.ArgumentMatchers.anyDouble(),
             org.mockito.ArgumentMatchers.anyDouble(), org.mockito.ArgumentMatchers.anyDouble(),
             org.mockito.ArgumentMatchers.anyDouble());
+    }
+
+    @Test
+    void rejectsAnEmptyCropUpdateInsteadOfSilentlyKeepingThePreviousCrop() {
+        assertThatThrownBy(() -> service.changeCrop(1L, 10L, null))
+            .isInstanceOf(BusinessException.class)
+            .hasMessageContaining("crop is required");
+
+        verify(photos, never()).findOwnedRecord(org.mockito.ArgumentMatchers.anyLong(), org.mockito.ArgumentMatchers.anyLong());
     }
 
     @Test
@@ -202,7 +235,9 @@ class PhotoComparisonServiceTest {
         when(photos.findOwnedRecord(1L, 10L)).thenReturn(current);
         when(photos.findOwnedRecord(1L, 11L)).thenReturn(replacement);
         when(current.getContest()).thenReturn(contest);
+        when(current.getId()).thenReturn(10L);
         when(current.getComparisonVisibility()).thenReturn(ComparisonVisibility.PRIVATE);
+        when(records.existsByUserIdAndContestIdAndIdNot(1L, 94L, 10L)).thenReturn(false);
         when(replacement.getContest()).thenReturn(null, contest);
         when(replacement.getId()).thenReturn(11L);
         when(photos.dto(replacement)).thenReturn(org.mockito.Mockito.mock(UserPhotoDto.class));
@@ -211,6 +246,34 @@ class PhotoComparisonServiceTest {
         service.replacePhoto(1L, 10L, 11L);
 
         verify(replacement).changeComparisonVisibility(ComparisonVisibility.PRIVATE);
+    }
+
+    @Test
+    void replacementRejectsASecondComparisonForTheSameContestBeforeDetachingTheCurrentPhoto() {
+        var current = org.mockito.Mockito.mock(PhotoRecord.class);
+        var replacement = org.mockito.Mockito.mock(PhotoRecord.class);
+        var contest = contest(94L);
+        when(photos.findOwnedRecord(1L, 10L)).thenReturn(current);
+        when(photos.findOwnedRecord(1L, 11L)).thenReturn(replacement);
+        when(current.getContest()).thenReturn(contest);
+        when(current.getId()).thenReturn(10L);
+        when(replacement.getContest()).thenReturn(null);
+        when(records.existsByUserIdAndContestIdAndIdNot(1L, 94L, 10L)).thenReturn(true);
+
+        assertThatThrownBy(() -> service.replacePhoto(1L, 10L, 11L, new ComparisonCropDto(1.5, 1.2, 0d, 0d)))
+            .isInstanceOf(BusinessException.class);
+
+        verify(current, never()).detachContest();
+        verify(replacement, never()).attachContest(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void replacementRequiresAPhotoRecordId() {
+        assertThatThrownBy(() -> service.replacePhoto(1L, 10L, null, new ComparisonCropDto(1.5, 1.2, 0d, 0d)))
+            .isInstanceOf(BusinessException.class)
+            .hasMessageContaining("userPhotoId is required");
+
+        verify(photos, never()).findOwnedRecord(org.mockito.ArgumentMatchers.anyLong(), org.mockito.ArgumentMatchers.anyLong());
     }
 
     private ContestWork contest(Long id) {

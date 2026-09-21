@@ -1,6 +1,6 @@
 # 04. API 명세 (REST)
 
-> **M9 현재 상태:** 개인 사진 기록 API와 수상작 비교 API가 구현됐다. 앨범은 묶음 조회·지도 API를 주로 사용하고, 수상작 비교의 새 사진은 단일 사진 업로드 API를 사용한다. 비교 사진 교체·저장 후 구도 수정 PATCH API는 서버 호환용으로만 남아 있으며 현재 UI에는 노출하지 않는다. 최신 명세는 [10-m6-photo-record.md](10-m6-photo-record.md)를 기준으로 한다.
+> **M10 현재 상태:** 개인 사진 기록 API와 수상작 비교 API가 구현됐다. 앨범은 묶음 조회·지도 API를 주로 사용하고, 수상작 비교의 새 사진은 단일 사진 업로드 API를 사용한다. 비교 결과의 `수정`에서 사진 교체 PATCH와 크롭 수정 PATCH를 사용한다. 최신 명세는 [10-m6-photo-record.md](10-m6-photo-record.md)를 기준으로 한다.
 
 > 프론트(React)↔백(Spring Boot) 계약. 실제 외부 API 응답(06)을 **내부 DTO로 변환**한 형태로 제공한다.
 > 외부 필드명(galWebImageUrl, koTitle…)은 절대 노출하지 않는다 → 외부 API가 바뀌어도 이 계약은 유지(확장성).
@@ -158,8 +158,8 @@
 | DELETE | `/me/photos/bundles/{id}` | 여행 기록 묶음과 포함 사진 삭제 |
 | GET | `/me/comparisons` | 내 수상작 비교 기록과 표시 구도 조회 |
 | POST | `/me/comparisons` | 사진 기록과 수상작을 연결하고 선택한 표시 구도 저장 |
-| PATCH | `/me/comparisons/{id}` | 서버 호환용: 비교 사진 교체와 선택한 표시 구도 저장 (현재 UI 미노출) |
-| PATCH | `/me/comparisons/{id}/crop` | 서버 호환용: 비교용 사진의 표시 구도만 수정 (현재 UI 미노출) |
+| PATCH | `/me/comparisons/{id}` | 비교 결과 수정의 사진 교체와 선택한 표시 구도 저장 |
+| PATCH | `/me/comparisons/{id}/crop` | 비교 결과 수정의 표시 구도만 변경 |
 | GET | `/contests/{id}/comparisons` | 해당 수상작의 공개 비교 사진과 표시 구도 조회 |
 
 ```json

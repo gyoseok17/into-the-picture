@@ -3,6 +3,7 @@ package com.intothepicture.domain.contest.service;
 import com.intothepicture.domain.contest.dto.ContestDetailDto;
 import com.intothepicture.domain.contest.dto.ContestMapPinDto;
 import com.intothepicture.domain.contest.dto.ContestMapper;
+import com.intothepicture.domain.contest.location.ContestLocationAvailability;
 import com.intothepicture.domain.contest.dto.ContestSearchCondition;
 import com.intothepicture.domain.contest.dto.ContestSummaryDto;
 import com.intothepicture.domain.contest.dto.CrowdForecastDto;
@@ -97,7 +98,7 @@ public class ContestService {
     @Transactional
     public ContestDetailDto getContest(Long id) {
         ContestWork work = findWork(id);
-        if (!work.hasCoordinates()) {
+        if (!ContestLocationAvailability.hasNoReliableLocation(work.getId()) && !work.hasCoordinates()) {
             geocodingProvider
                 .flatMap(provider -> provider.geocode(work.getLocation()))
                 .ifPresent(coordinate -> work.assignCoordinates(coordinate.lat(), coordinate.lng()));

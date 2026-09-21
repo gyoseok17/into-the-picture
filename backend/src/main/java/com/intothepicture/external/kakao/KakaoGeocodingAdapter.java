@@ -2,6 +2,8 @@ package com.intothepicture.external.kakao;
 
 import com.intothepicture.domain.contest.port.Coordinate;
 import com.intothepicture.domain.contest.port.GeocodingProvider;
+import com.intothepicture.domain.contest.port.PlaceReference;
+import com.intothepicture.domain.contest.port.PlaceSearchProvider;
 import com.intothepicture.global.exception.ExternalApiException;
 import java.util.Arrays;
 import java.util.List;
@@ -19,7 +21,7 @@ import org.springframework.stereotype.Component;
  * (좌표 없음 = 지도 마커 graceful 처리, 상세/배치가 죽지 않게).
  */
 @Component
-public class KakaoGeocodingAdapter implements GeocodingProvider {
+public class KakaoGeocodingAdapter implements GeocodingProvider, PlaceSearchProvider {
 
     private static final Logger log = LoggerFactory.getLogger(KakaoGeocodingAdapter.class);
 
@@ -39,14 +41,34 @@ public class KakaoGeocodingAdapter implements GeocodingProvider {
         String region = parts.isEmpty() ? locationText : parts.get(0);
 
         try {
-            return kakaoLocalClient.searchKeyword(placeName)         // ① 장소명
-                .or(() -> kakaoLocalClient.searchKeyword(locationText)) // ② 전체 문자열
+            return findKeywordPlace(placeName, locationText)
                 .or(() -> kakaoLocalClient.searchAddress(region))       // ③ 행정구역 주소
                 .map(place -> new Coordinate(place.lat(), place.lng()));
         } catch (ExternalApiException e) {
             log.warn("지오코딩 실패(graceful) '{}': {}", locationText, e.getMessage());
             return Optional.empty();
         }
+    }
+
+    /** Keyword results carry Kakao's stable place ID; address fallback deliberately does not. */
+    @Override
+    public Optional<PlaceReference> findPlace(String locationText) {
+        if (locationText == null || locationText.isBlank()) return Optional.empty();
+        List<String> parts = segments(locationText);
+        String placeName = parts.isEmpty() ? locationText : parts.get(parts.size() - 1);
+        try {
+            return findKeywordPlace(placeName, locationText)
+                .filter(place -> place.id() != null && !place.id().isBlank())
+                .map(place -> new PlaceReference(place.id(), place.lat(), place.lng()));
+        } catch (ExternalApiException e) {
+            log.warn("카카오 장소 ID 조회 실패(graceful) '{}': {}", locationText, e.getMessage());
+            return Optional.empty();
+        }
+    }
+
+    private Optional<KakaoPlace> findKeywordPlace(String placeName, String locationText) {
+        return kakaoLocalClient.searchKeyword(placeName)
+            .or(() -> kakaoLocalClient.searchKeyword(locationText));
     }
 
     private List<String> segments(String text) {

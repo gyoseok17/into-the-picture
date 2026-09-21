@@ -1,6 +1,7 @@
 package com.intothepicture.domain.contest.repository;
 
 import com.intothepicture.domain.contest.entity.ContestWork;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,6 +18,10 @@ public interface ContestRepository
     Optional<ContestWork> findByContentId(String contentId);
 
     boolean existsByContentId(String contentId);
+
+    List<ContestWork> findAllByIdIn(Collection<Long> ids);
+
+    List<ContestWork> findAllByKakaoPlaceIdIsNull();
 
     @Query("select distinct c.season from ContestWork c where c.season is not null order by c.season")
     List<String> findDistinctSeasons();

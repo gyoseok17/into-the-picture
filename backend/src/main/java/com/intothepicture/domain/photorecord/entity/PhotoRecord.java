@@ -48,10 +48,22 @@ public class PhotoRecord extends BaseTimeEntity {
     }
 
     public void attachContest(ContestWork value) {
+        inheritContestMapLocationWhenMissing(value);
         this.contest = value;
         this.displayMode = DisplayMode.WITH_CONTEST;
         this.contestLinkedAt = LocalDateTime.now();
         this.comparisonVisibility = ComparisonVisibility.PUBLIC;
+    }
+
+    /**
+     * Comparison uploads can be created before the contest link exists. Preserve a
+     * user's chosen map location, but make an otherwise unlocated record usable in
+     * the album by inheriting only the contest's curated location codes.
+     */
+    private void inheritContestMapLocationWhenMissing(ContestWork value) {
+        if (mapRegionCode != null || value == null || value.getMapRegionCode() == null) return;
+        this.mapRegionCode = value.getMapRegionCode();
+        this.mapCityCode = value.getMapCityCode();
     }
 
     public void attachBundle(PhotoRecordBundle value) { this.bundle = value; }

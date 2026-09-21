@@ -113,6 +113,9 @@ public class ContestWork {
     @Column(name = "map_city_code", length = 50)
     private String mapCityCode;
 
+    @Column(name = "kakao_place_id", length = 32)
+    private String kakaoPlaceId;
+
     // --- 보강값(geocode/crowd-match 배치, null 허용) ---
     private Double lat;
 
@@ -166,6 +169,11 @@ public class ContestWork {
     public void assignCoordinates(double lat, double lng) {
         this.lat = lat;
         this.lng = lng;
+    }
+
+    /** Stores only a provider-returned Kakao place ID; blank values are ignored. */
+    public void assignKakaoPlaceId(String value) {
+        if (value != null && !value.isBlank()) this.kakaoPlaceId = value;
     }
 
     /** 집중률 관광지명 매칭 결과 저장(보강). */

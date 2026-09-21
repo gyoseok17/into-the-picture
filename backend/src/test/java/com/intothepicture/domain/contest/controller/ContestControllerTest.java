@@ -109,7 +109,7 @@ class ContestControllerTest {
             12L, "가야산 설경", "https://x/thumb.jpg", "경상남도 합천군, 가야산국립공원",
             "경상남도", "합천군", "서정철", "202401", "스마트폰 부문", "입선", "겨울",
             List.of("겨울"), "https://x/org.jpg", 35.8043935, 128.1083354,
-            "GYEONGSANG", "HAPCHEON", "Type1", true);
+            "18577297", "GYEONGSANG", "HAPCHEON", "Type1", true);
         given(contestService.getContest(12L)).willReturn(detail);
 
         mockMvc.perform(get("/api/v1/contests/12"))
@@ -117,6 +117,7 @@ class ContestControllerTest {
             .andExpect(jsonPath("$.imageUrl").value("https://x/org.jpg"))
             .andExpect(jsonPath("$.lat").value(35.8043935))
             .andExpect(jsonPath("$.lng").value(128.1083354))
+            .andExpect(jsonPath("$.kakaoPlaceId").value("18577297"))
             .andExpect(jsonPath("$.mapRegionCode").value("GYEONGSANG"))
             .andExpect(jsonPath("$.mapCityCode").value("HAPCHEON"))
             .andExpect(jsonPath("$.copyright").value("Type1"))

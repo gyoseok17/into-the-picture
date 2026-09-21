@@ -71,7 +71,8 @@ public class KakaoLocalClient {
             double lng = Double.parseDouble(first.path("x").asText());
             double lat = Double.parseDouble(first.path("y").asText());
             String name = first.path("place_name").asText(first.path("address_name").asText(null));
-            return Optional.of(new KakaoPlace(name, lat, lng));
+            String id = first.path("id").asText(null);
+            return Optional.of(new KakaoPlace(id == null || id.isBlank() ? null : id, name, lat, lng));
         } catch (NumberFormatException e) {
             log.warn("카카오 좌표 파싱 실패: x={} y={}", first.path("x").asText(), first.path("y").asText());
             return Optional.empty();
