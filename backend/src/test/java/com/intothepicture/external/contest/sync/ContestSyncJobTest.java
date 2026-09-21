@@ -114,6 +114,20 @@ class ContestSyncJobTest {
     }
 
     @Test
+    @DisplayName("신안군 수상작은 새 sync에서 앨범 카탈로그의 정식 SINAN 코드로 저장한다")
+    void persistsNormalizedSinanMapCodeForFreshSync() {
+        when(contestApiClient.fetchAll()).thenReturn(List.of(item("C62", "염전체험")));
+        when(contestRepository.existsByContentId("C62")).thenReturn(false);
+
+        contestSyncJob.sync();
+
+        ArgumentCaptor<ContestWork> captor = ArgumentCaptor.forClass(ContestWork.class);
+        verify(contestRepository).save(captor.capture());
+        assertThat(captor.getValue().getMapRegionCode()).isEqualTo("JEOLLA");
+        assertThat(captor.getValue().getMapCityCode()).isEqualTo("SINAN");
+    }
+
+    @Test
     @DisplayName("동명 지오코딩 오류가 있었던 수상작은 sync 시 검증된 좌표를 바로 저장한다")
     void persistsCuratedCoordinatesForFreshSync() {
         when(contestApiClient.fetchAll()).thenReturn(List.of(item("C63", "영취산의 봄")));

@@ -81,7 +81,7 @@ final class ContestLocationOverrides {
         entry("야간 고궁 특별함", "CHUNGCHEONG", "BUYEO"),
         entry("역사와 함께 깊어진 가을", "CAPITAL", "SEOUL"),
         entry("연천의 가을", "CAPITAL", "YEONCHEON"),
-        entry("염전체험", "JEOLLA", "SHINAN"),
+        entry("염전체험", "JEOLLA", "SINAN"),
         entry("영취산의 봄", "JEOLLA", "YEOSU"),
         entry("오도리주상절리2", "GYEONGSANG", "POHANG"),
         entry("오름의 아침", "JEJU", "JEJU_CITY"),

@@ -31,4 +31,6 @@
 | M8.3 | 완료 | [M8.3-s3-selectable-storage.md](M8.3-s3-selectable-storage.md) |
 | M8.4 | 완료 | [M8.4-docker-hub-ec2-deployment.md](M8.4-docker-hub-ec2-deployment.md) |
 | M8.5 | 완료 | [M8.5-deployment-origin-configuration.md](M8.5-deployment-origin-configuration.md) |
-| M9 | 구현 완료 · 커밋 대기 | [M9-album-empty-story-state.md](M9-album-empty-story-state.md) |
+| M9 | 완료 | [M9-album-empty-story-state.md](M9-album-empty-story-state.md) |
+| M10 | 완료 | [M10-album-data-safety-and-query.md](M10-album-data-safety-and-query.md) |
+| M10.1 | 완료 | [M10.1-contest-location-code-normalization.md](M10.1-contest-location-code-normalization.md) |

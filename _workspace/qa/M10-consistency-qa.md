@@ -25,6 +25,33 @@
 4. 공통 모달 훅 소비처에서 Esc, 바깥 클릭, 포커스 복귀, body scroll lock 중첩 회귀 확인
 5. `git diff --check` 및 계약 비범위(API/DTO/DB) 변경 여부 확인
 
-## 변경 후 교차 검증
+## 변경 후 교차 검증 — 2026-09-22
 
-_구현 완료 후 추가_
+### 지역 입력 경계
+
+- `MapLocationInputResolver`가 공백→`null`, 길이 제한(권역 32자·도시 48자)을 한 번 처리한 뒤 `MapLocationCatalog.resolve`에 위임한다.
+- 단건 업로드(`UserPhotoUploadService`), 묶음 업로드(`PhotoRecordBundleService`), 수정(`UserPhotoService`)의 쓰기 경로가 모두 이 resolver만 사용함을 대조했다.
+- 빈 선택, 공백/대소문자 정규화, 길이 초과는 resolver 단위 테스트로 확인했다. 지역 없는 도시·권역-도시 불일치는 기존 catalog의 `INVALID_REQUEST` 검증을 그대로 사용한다.
+- API URL·DTO·DB 스키마에는 이 경계 정리로 인한 변경이 없다.
+
+### 캐시 키·무효화
+
+- `rg 'queryKey\\s*:\\s*\\[' frontend/src --glob '!**/queryKeys.ts'` 결과 직접 배열 query key는 0건이다.
+- album projection 무효화는 records/bundles/map/bundleMap을 함께 갱신한다.
+- 비교 생성·삭제·사진 교체는 비교와 앨범 projection을 함께 갱신한다. QA에서 발견한 생성 후 앨범 무효화 누락은 수정됐다.
+- 비교 공개 설정·크롭은 비교 조회만 바꾸므로 comparison key만 무효화하는 현재 범위가 적절하다. 대표 사진 설정은 bundle map 투영만 바꾼다.
+
+### 모달 공통 동작
+
+- 단순 Esc 닫기는 `useEscapeDismiss`로 이동했다.
+- 수상작 상세·공개 비교 창은 중첩 안전한 body overflow 잠금과 포커스 복귀 훅을 사용한다.
+- 수상작 상세의 Tab focus trap, 비교 결과의 단계별 Esc 복귀는 화면 고유 동작이므로 직접 리스너로 남겼으며 계약의 공통화 비범위에 부합한다.
+- `PhotoAddSheet`의 업로드 중 Esc 차단과 장소 선택기의 disabled 처리도 공통 훅 옵션으로 유지된다.
+
+### 실행 검증·판정
+
+- `backend\\gradlew.bat test --no-daemon` 통과.
+- 프런트 `npm run build` 통과. 기존 초기 청크 약 820KB 경고만 있으며 이번 변경의 기능 차단 이슈는 아니다.
+- `git diff --check` 통과. 직접 keydown 검색 결과는 비교 결과의 단계별 Esc와 전역 메뉴/보조 UI만 남아 있어, 이번 공통화 대상의 누락이 아니다.
+
+**통합 판정: 통과.** API·DB·화면 구조를 바꾸지 않고 지역 입력, 캐시 키, 공통 모달 동작의 중복 경계를 정리했다. 권고: 실제 브라우저에서 중첩 상세→공개 비교, 사진 추가→장소 선택, 비교 결과→크롭 편집의 Esc·포커스 복귀를 한 번씩 수동 확인한다.
